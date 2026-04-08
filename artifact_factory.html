@@ -1,0 +1,2550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Insights 2.0 — Artifact Factory</title>
+<style>
+  :root {
+    --orange: #FF5A1F;
+    --orange-light: #FFF0EB;
+    --orange-dark: #D94700;
+    --navy: #1A2B4A;
+    --navy-light: #2D4170;
+    --gray-50: #F9FAFB;
+    --gray-100: #F3F4F6;
+    --gray-200: #E5E7EB;
+    --gray-300: #D1D5DB;
+    --gray-500: #6B7280;
+    --gray-700: #374151;
+    --gray-900: #111827;
+    --green: #059669;
+    --green-light: #ECFDF5;
+    --blue: #2563EB;
+    --blue-light: #EFF6FF;
+    --purple: #7C3AED;
+    --purple-light: #F5F3FF;
+    --radius: 10px;
+    --shadow: 0 1px 3px rgba(0,0,0,.1), 0 1px 2px rgba(0,0,0,.06);
+    --shadow-md: 0 4px 6px -1px rgba(0,0,0,.1), 0 2px 4px -1px rgba(0,0,0,.06);
+    --shadow-lg: 0 10px 15px -3px rgba(0,0,0,.1), 0 4px 6px -2px rgba(0,0,0,.05);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--gray-100);
+    color: var(--gray-900);
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  .header {
+    background: var(--navy);
+    padding: 0 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 60px;
+    box-shadow: var(--shadow-md);
+  }
+  .header-left { display: flex; align-items: center; gap: 12px; }
+  .logo-dot { width: 28px; height: 28px; background: var(--orange); border-radius: 6px; display: flex; align-items: center; justify-content: center; }
+  .logo-dot svg { width: 16px; height: 16px; fill: white; }
+  .header-title { color: white; font-size: 15px; font-weight: 600; letter-spacing: -0.01em; }
+  .header-subtitle { color: rgba(255,255,255,0.5); font-size: 13px; margin-left: 4px; }
+  .badge {
+    background: var(--orange);
+    color: white;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 9px;
+    border-radius: 20px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  /* LAYOUT */
+  .app {
+    display: grid;
+    grid-template-columns: 400px 1fr;
+    gap: 0;
+    min-height: calc(100vh - 60px);
+  }
+
+  /* LEFT PANEL — INPUTS */
+  .panel-left {
+    background: white;
+    border-right: 1px solid var(--gray-200);
+    overflow-y: auto;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .section-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--gray-500);
+    margin-bottom: 10px;
+  }
+
+  .input-group { display: flex; flex-direction: column; gap: 6px; }
+  .input-group label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--gray-700);
+  }
+  .input-group input,
+  .input-group select,
+  .input-group textarea {
+    border: 1.5px solid var(--gray-200);
+    border-radius: 7px;
+    padding: 8px 11px;
+    font-size: 13px;
+    color: var(--gray-900);
+    background: white;
+    transition: border-color .15s;
+    outline: none;
+    font-family: inherit;
+  }
+  .input-group input:focus,
+  .input-group select:focus,
+  .input-group textarea:focus { border-color: var(--orange); }
+  .input-group input::placeholder,
+  .input-group textarea::placeholder { color: var(--gray-300); }
+  .input-group textarea { resize: vertical; min-height: 60px; }
+
+  .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+
+  /* Segment cards */
+  .segment-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .segment-card {
+    border: 2px solid var(--gray-200);
+    border-radius: 9px;
+    padding: 10px 12px;
+    cursor: pointer;
+    transition: all .15s;
+    position: relative;
+  }
+  .segment-card:hover { border-color: var(--orange); background: var(--orange-light); }
+  .segment-card.selected { border-color: var(--orange); background: var(--orange-light); }
+  .segment-card input[type=radio] { display: none; }
+  .segment-name { font-size: 12px; font-weight: 600; color: var(--gray-900); }
+  .segment-desc { font-size: 11px; color: var(--gray-500); margin-top: 2px; line-height: 1.35; }
+  .segment-icon { font-size: 18px; margin-bottom: 4px; }
+
+  /* Objective cards */
+  .objective-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .objective-card {
+    border: 2px solid var(--gray-200);
+    border-radius: 9px;
+    padding: 10px 12px;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .objective-card:hover { border-color: var(--navy); background: var(--blue-light); }
+  .objective-card.selected { border-color: var(--navy); background: var(--blue-light); }
+  .objective-card input[type=radio] { display: none; }
+  .objective-name { font-size: 12px; font-weight: 600; color: var(--gray-900); }
+  .objective-desc { font-size: 11px; color: var(--gray-500); margin-top: 2px; line-height: 1.35; }
+  .objective-icon { font-size: 18px; margin-bottom: 4px; }
+
+  /* divider */
+  .divider { height: 1px; background: var(--gray-100); margin: 0 -24px; }
+
+  /* Section header */
+  .section-header { display: flex; align-items: center; gap: 8px; }
+  .step-num {
+    width: 22px; height: 22px;
+    background: var(--navy);
+    color: white;
+    border-radius: 50%;
+    font-size: 11px;
+    font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .section-title { font-size: 13px; font-weight: 700; color: var(--gray-900); }
+
+  /* RIGHT PANEL — OUTPUTS */
+  .panel-right {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .output-header {
+    background: white;
+    border-bottom: 1px solid var(--gray-200);
+    padding: 16px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+  .output-header-title { font-size: 15px; font-weight: 700; color: var(--gray-900); }
+  .output-header-sub { font-size: 12px; color: var(--gray-500); margin-top: 2px; }
+
+  .tabs {
+    display: flex;
+    gap: 4px;
+    background: white;
+    border-bottom: 1px solid var(--gray-200);
+    padding: 0 28px;
+    flex-shrink: 0;
+  }
+  .tab {
+    padding: 12px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--gray-500);
+    cursor: pointer;
+    border-bottom: 2.5px solid transparent;
+    transition: all .15s;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    user-select: none;
+  }
+  .tab:hover { color: var(--gray-900); }
+  .tab.active { color: var(--orange); border-bottom-color: var(--orange); font-weight: 600; }
+  .tab-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--gray-300);
+    transition: background .15s;
+  }
+  .tab.active .tab-dot { background: var(--orange); }
+
+  .output-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  /* Artifact cards */
+  .artifact-card {
+    background: white;
+    border: 1.5px solid var(--gray-200);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+  .artifact-header {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--gray-100);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--gray-50);
+  }
+  .artifact-type {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--gray-500);
+  }
+  .copy-btn {
+    background: none;
+    border: 1px solid var(--gray-200);
+    border-radius: 6px;
+    padding: 5px 10px;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--gray-500);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: all .15s;
+    font-family: inherit;
+  }
+  .copy-btn:hover { background: var(--gray-100); color: var(--gray-900); border-color: var(--gray-300); }
+  .copy-btn.copied { background: var(--green-light); color: var(--green); border-color: var(--green); }
+
+  .artifact-body {
+    padding: 18px;
+  }
+
+  /* Insight nugget */
+  .insight-text {
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--gray-900);
+  }
+  .insight-highlight {
+    background: var(--orange-light);
+    color: var(--orange-dark);
+    border-radius: 4px;
+    padding: 1px 4px;
+    font-weight: 600;
+  }
+
+  /* Email */
+  .email-subject {
+    background: var(--gray-50);
+    border: 1px solid var(--gray-200);
+    border-radius: 7px;
+    padding: 10px 14px;
+    margin-bottom: 14px;
+  }
+  .email-subject-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--gray-500); margin-bottom: 4px; }
+  .email-subject-text { font-size: 13px; font-weight: 600; color: var(--gray-900); }
+  .email-body { font-size: 13px; line-height: 1.75; color: var(--gray-700); white-space: pre-line; }
+
+  /* Money slide */
+  .slide-preview {
+    background: var(--navy);
+    border-radius: 10px;
+    padding: 28px 30px;
+    margin-bottom: 16px;
+  }
+  .slide-headline {
+    font-size: 18px;
+    font-weight: 700;
+    color: white;
+    line-height: 1.3;
+    margin-bottom: 18px;
+  }
+  .slide-headline span { color: var(--orange); }
+  .slide-bullets { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+  .slide-bullet {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.85);
+    line-height: 1.5;
+  }
+  .bullet-marker {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--orange);
+    flex-shrink: 0;
+    margin-top: 6px;
+  }
+  .slide-sowhat {
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(255,255,255,0.15);
+    font-size: 13px;
+    color: rgba(255,255,255,0.6);
+  }
+  .slide-sowhat strong { color: white; }
+
+  .script-section {
+    background: var(--gray-50);
+    border: 1px solid var(--gray-200);
+    border-radius: 8px;
+    padding: 14px 16px;
+  }
+  .script-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--gray-500); margin-bottom: 8px; }
+  .script-text { font-size: 13px; line-height: 1.7; color: var(--gray-700); white-space: pre-line; }
+
+  /* Empty state */
+  .empty-state {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 60px 40px;
+    color: var(--gray-500);
+  }
+  .empty-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.5; }
+  .empty-title { font-size: 16px; font-weight: 600; color: var(--gray-700); margin-bottom: 8px; }
+  .empty-desc { font-size: 13px; line-height: 1.6; max-width: 340px; }
+
+  /* Progress indicator */
+  .progress-bar {
+    background: var(--gray-100);
+    border-radius: 4px;
+    height: 4px;
+    margin-top: 4px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--orange);
+    border-radius: 4px;
+    transition: width .3s ease;
+  }
+  .progress-label { font-size: 11px; color: var(--gray-500); margin-top: 4px; text-align: right; }
+
+  /* Disclaimer */
+  .disclaimer {
+    background: #FFFBEB;
+    border: 1px solid #FDE68A;
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 12px;
+    color: #92400E;
+    line-height: 1.5;
+  }
+  .disclaimer strong { font-weight: 600; }
+
+  /* Helper text */
+  .helper { font-size: 11px; color: var(--gray-500); margin-top: 4px; line-height: 1.4; }
+
+  /* Download btn */
+  .download-btn {
+    background: var(--navy);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 18px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-family: inherit;
+    transition: background .15s;
+  }
+  .download-btn:hover { background: var(--navy-light); }
+
+  .hidden { display: none !important; }
+
+  /* Tag pills */
+  .tag-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+  .tag {
+    font-size: 11px;
+    font-weight: 500;
+    padding: 3px 9px;
+    border-radius: 20px;
+    background: var(--gray-100);
+    color: var(--gray-600);
+  }
+  .tag.orange { background: var(--orange-light); color: var(--orange-dark); }
+  .tag.navy { background: #E8EDF5; color: var(--navy); }
+  .tag.green { background: var(--green-light); color: var(--green); }
+
+  /* ── LOAD DATA PANEL ─────────────────────────────────────────── */
+  .load-data-panel {
+    border: 1.5px dashed var(--gray-300);
+    border-radius: 10px;
+    overflow: hidden;
+    transition: border-color .15s;
+  }
+  .load-data-panel:has(.load-data-body:not([style*="display:none"])) {
+    border-style: solid;
+    border-color: var(--green);
+  }
+  .load-data-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 13px;
+    cursor: pointer;
+    background: white;
+    user-select: none;
+  }
+  .load-data-header:hover { background: var(--gray-50); }
+  .load-data-header-left { display: flex; align-items: center; gap: 8px; }
+  .load-data-icon { font-size: 14px; }
+  .load-data-title { font-size: 12px; font-weight: 600; color: var(--gray-700); }
+  .load-data-subtitle { font-size: 11px; color: var(--gray-500); margin-top: 1px; }
+  .load-data-chevron {
+    font-size: 11px; color: var(--gray-400);
+    transition: transform .2s;
+  }
+  .load-data-chevron.open { transform: rotate(180deg); }
+  .load-data-body { padding: 12px 13px 13px; border-top: 1px solid var(--gray-200); background: var(--gray-50); }
+  .load-data-textarea {
+    width: 100%;
+    min-height: 90px;
+    max-height: 160px;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 11px;
+    color: var(--gray-700);
+    border: 1.5px solid var(--gray-200);
+    border-radius: 7px;
+    padding: 8px 10px;
+    background: white;
+    resize: vertical;
+    outline: none;
+    line-height: 1.5;
+  }
+  .load-data-textarea:focus { border-color: var(--green); }
+  .load-data-actions { display: flex; gap: 8px; margin-top: 8px; align-items: center; }
+  .load-btn {
+    display: flex; align-items: center; gap: 5px;
+    padding: 6px 13px;
+    font-size: 12px; font-weight: 600;
+    border: none; border-radius: 6px;
+    cursor: pointer; font-family: inherit;
+    transition: all .15s;
+  }
+  .load-btn-primary { background: var(--green); color: white; }
+  .load-btn-primary:hover { background: #047857; }
+  .load-btn-secondary { background: var(--gray-200); color: var(--gray-700); }
+  .load-btn-secondary:hover { background: var(--gray-300); }
+  .load-data-status {
+    font-size: 11px; font-weight: 600;
+    padding: 3px 8px; border-radius: 5px;
+    display: none;
+  }
+  .load-data-status.success { background: var(--green-light); color: var(--green); display: inline-block; }
+  .load-data-status.error { background: #FEE2E2; color: #DC2626; display: inline-block; }
+  .load-data-hint {
+    font-size: 11px; color: var(--gray-500); margin-top: 8px; line-height: 1.5;
+  }
+  .load-data-hint a { color: var(--orange); text-decoration: none; cursor: pointer; font-weight: 500; }
+  .sample-format-block {
+    display: none;
+    margin-top: 8px;
+    background: var(--navy);
+    border-radius: 7px;
+    padding: 10px 12px;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 10.5px;
+    color: #A5C8FF;
+    line-height: 1.6;
+    white-space: pre;
+    overflow-x: auto;
+  }
+  .sample-format-block.visible { display: block; }
+
+  /* ── MODE SELECTOR ────────────────────────────────────────────── */
+  .mode-selector {
+    border: 1.5px solid var(--gray-200);
+    border-radius: 10px;
+    padding: 12px;
+    background: var(--gray-50);
+  }
+  .mode-selector-label {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--gray-500); margin-bottom: 8px;
+  }
+  .mode-cards { display: flex; flex-direction: column; gap: 6px; }
+  .mode-card {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 10px 12px;
+    border: 1.5px solid var(--gray-200);
+    border-radius: 8px;
+    cursor: pointer;
+    background: white;
+    transition: all .15s;
+    text-align: left;
+    width: 100%;
+    font-family: inherit;
+  }
+  .mode-card:hover { border-color: var(--gray-300); background: var(--gray-50); }
+  .mode-card.active { border-color: var(--orange); background: var(--orange-light); }
+  .mode-icon { font-size: 17px; flex-shrink: 0; line-height: 1; margin-top: 1px; }
+  .mode-title { font-size: 13px; font-weight: 600; color: var(--gray-900); line-height: 1.3; }
+  .mode-desc { font-size: 11px; color: var(--gray-500); margin-top: 2px; line-height: 1.4; }
+  .mode-card.active .mode-title { color: var(--orange-dark); }
+  .mode-card.active .mode-desc { color: var(--orange-dark); opacity: 0.75; }
+
+  /* ── VISUAL EMAIL ─────────────────────────────────────────────── */
+  .email-mode-toggle {
+    display: flex;
+    gap: 0;
+    background: var(--gray-100);
+    border: 1.5px solid var(--gray-200);
+    border-radius: 8px;
+    padding: 3px;
+    width: fit-content;
+    margin-bottom: 14px;
+  }
+  .email-mode-btn {
+    padding: 5px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    border: none;
+    background: none;
+    border-radius: 5px;
+    cursor: pointer;
+    color: var(--gray-500);
+    transition: all .15s;
+    letter-spacing: 0.01em;
+  }
+  .email-mode-btn.active {
+    background: white;
+    color: var(--navy);
+    box-shadow: 0 1px 3px rgba(0,0,0,.12);
+  }
+
+  /* Visual email preview wrapper */
+  .visual-email {
+    border: 1.5px solid var(--gray-200);
+    border-radius: 10px;
+    overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+    background: #ffffff;
+    box-shadow: var(--shadow-md);
+  }
+  .ve-header {
+    background: var(--navy);
+    padding: 18px 24px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .ve-logo {
+    width: 26px; height: 26px;
+    background: var(--orange);
+    border-radius: 5px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .ve-logo svg { width: 14px; height: 14px; fill: white; }
+  .ve-header-text { color: white; font-size: 13px; font-weight: 600; }
+  .ve-header-sub { color: rgba(255,255,255,0.5); font-size: 11px; margin-top: 1px; }
+  .ve-orange-bar { height: 3px; background: var(--orange); }
+
+  .ve-subject-bar {
+    background: var(--gray-50);
+    border-bottom: 1px solid var(--gray-200);
+    padding: 10px 24px;
+    font-size: 12px;
+    color: var(--gray-500);
+    display: flex;
+    gap: 8px;
+    align-items: baseline;
+  }
+  .ve-subject-label { font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; font-size: 10px; }
+  .ve-subject-value { color: var(--gray-900); font-size: 13px; font-weight: 500; }
+
+  .ve-body { padding: 22px 24px; }
+  .ve-para {
+    font-size: 13.5px;
+    line-height: 1.65;
+    color: #2D3748;
+    margin-bottom: 16px;
+    white-space: pre-wrap;
+  }
+
+  /* Stat snapshot card */
+  .ve-snapshot {
+    background: linear-gradient(135deg, var(--navy) 0%, #2D4170 100%);
+    border-radius: 10px;
+    padding: 16px 18px;
+    margin: 18px 0;
+  }
+  .ve-snapshot-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.5);
+    margin-bottom: 12px;
+  }
+  .ve-stats-row {
+    display: grid;
+    gap: 10px;
+  }
+  .ve-stat {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 7px;
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .ve-stat-value {
+    font-size: 20px;
+    font-weight: 700;
+    color: white;
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+  .ve-stat-value.highlight { color: #4ADE80; }
+  .ve-stat-label {
+    font-size: 10px;
+    color: rgba(255,255,255,0.55);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .ve-stat-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    background: rgba(74,222,128,0.18);
+    color: #4ADE80;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-top: 3px;
+    width: fit-content;
+  }
+  .ve-stat-badge.above {
+    background: rgba(251,113,133,0.18);
+    color: #FB7185;
+  }
+
+  .ve-cta {
+    display: inline-block;
+    background: var(--orange);
+    color: white !important;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 10px 20px;
+    border-radius: 7px;
+    text-decoration: none;
+    margin: 6px 0 18px;
+    letter-spacing: 0.01em;
+  }
+  .ve-sig {
+    font-size: 13px;
+    color: var(--gray-500);
+    border-top: 1px solid var(--gray-200);
+    padding-top: 14px;
+    margin-top: 6px;
+    line-height: 1.7;
+  }
+  .ve-footer {
+    background: var(--gray-50);
+    border-top: 1px solid var(--gray-200);
+    padding: 10px 24px;
+    font-size: 11px;
+    color: var(--gray-500);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .ve-footer-dot { width: 6px; height: 6px; background: var(--orange); border-radius: 50%; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div class="logo-dot">
+      <svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="7"/></svg>
+    </div>
+    <span class="header-title">Artifact Factory</span>
+    <span class="header-subtitle">/ Insights 2.0</span>
+  </div>
+  <span class="badge">Beta</span>
+</div>
+
+<div class="app">
+
+  <!-- LEFT: INPUTS -->
+  <div class="panel-left" id="inputPanel">
+
+    <!-- MODE SELECTOR -->
+    <div class="mode-selector">
+      <div class="mode-selector-label">Outreach Mode</div>
+      <div class="mode-cards">
+        <button class="mode-card active" onclick="selectMode('debrief', this)">
+          <span class="mode-icon">📊</span>
+          <div>
+            <div class="mode-title">Results Debrief</div>
+            <div class="mode-desc">You have campaign data. Build a results story for an existing client.</div>
+          </div>
+        </button>
+        <button class="mode-card" onclick="selectMode('new-client', this)">
+          <span class="mode-icon">🎯</span>
+          <div>
+            <div class="mode-title">New Client Outreach</div>
+            <div class="mode-desc">No campaign yet. Use category benchmarks to build a prospecting pitch.</div>
+          </div>
+        </button>
+        <button class="mode-card" onclick="selectMode('lapsed', this)">
+          <span class="mode-icon">🔄</span>
+          <div>
+            <div class="mode-title">Lapsed Re-engagement</div>
+            <div class="mode-desc">Prior client who's gone dark. Build a "here's what's changed" restart narrative.</div>
+          </div>
+        </button>
+      </div>
+    </div>
+
+    <!-- LOAD CAMPAIGN DATA -->
+    <div class="load-data-panel" id="loadDataPanel">
+      <div class="load-data-header" onclick="toggleLoadPanel()">
+        <div class="load-data-header-left">
+          <span class="load-data-icon">📥</span>
+          <div>
+            <div class="load-data-title">Load Campaign Data</div>
+            <div class="load-data-subtitle">Paste CA export JSON to auto-fill fields</div>
+          </div>
+        </div>
+        <span class="load-data-chevron" id="loadChevron">▼</span>
+      </div>
+      <div class="load-data-body" id="loadDataBody" style="display:none;">
+        <textarea class="load-data-textarea" id="loadDataInput"
+          placeholder='Paste CA export JSON here...&#10;{"account_name":"Frito-Lay","brand":"Lay\'s",...}'></textarea>
+        <div class="load-data-actions">
+          <button class="load-btn load-btn-primary" onclick="loadCampaignData()">↓ Populate Fields</button>
+          <button class="load-btn load-btn-secondary" onclick="clearLoadData()">Clear</button>
+          <span class="load-data-status" id="loadDataStatus"></span>
+        </div>
+        <div class="load-data-hint">
+          CA exports this format from Databricks. Don't have it yet?
+          <a onclick="toggleSampleFormat()">View sample format</a> ·
+          <a onclick="toggleQueryTemplate()">Copy CA query</a>
+        </div>
+        <div class="sample-format-block" id="sampleFormat">{
+  "account_name": "Frito-Lay",
+  "brand": "Lay's",
+  "category": "Salty Snacks",
+  "contact_name": "Sarah",
+  "campaign_period": "Q1 2026",
+  "objective": "profitable-growth",
+  "segment": "loyal",
+  "pct_redemptions": "71",
+  "actual_cpid": "$0.38",
+  "target_cpid": "$0.52",
+  "lift_pct": "16.4%",
+  "halo_pct": "9.2%",
+  "total_incr_sales": "$1.4M",
+  "offer_type": "buy-1"
+}</div>
+        <div class="sample-format-block" id="queryTemplate">-- Artifact Factory Data Export
+-- SOT: main.incrementality.incrementality_results_extrapolated
+-- Replace :account_name with the client account name
+-- Validate column names against your schema before running
+
+SELECT
+  r.account_name,
+  r.brand_name                                      AS brand,
+  r.primary_category                                AS category,
+  CONCAT(r.campaign_start_date, ' – ',
+         r.campaign_end_date)                       AS campaign_period,
+  -- Segment: map your segment field to: loyal | lapsed | new | competitive
+  r.primary_segment                                 AS segment,
+  -- CPID: total_cost / total_incremental_dollars (in-period + halo + post-period)
+  CONCAT('$', ROUND(r.total_cost /
+    NULLIF(r.total_incremental_dollars, 0), 2))     AS actual_cpid,
+  -- Lift %: incremental units / base units
+  CONCAT(ROUND(r.incremental_units /
+    NULLIF(r.base_units, 0) * 100, 1), '%')         AS lift_pct,
+  -- Halo %: halo incremental dollars / total incremental dollars
+  CONCAT(ROUND(r.halo_incremental_dollars /
+    NULLIF(r.total_incremental_dollars, 0) * 100, 1), '%') AS halo_pct,
+  -- Total incremental dollars (in-period + halo + post-period)
+  CONCAT('$', ROUND(r.total_incremental_dollars / 1000000, 1), 'M')
+                                                    AS total_incr_sales,
+  -- % redemptions from primary segment (update field name to match schema)
+  CONCAT(ROUND(r.pct_primary_segment * 100, 1))    AS pct_redemptions
+FROM main.incrementality.incrementality_results_extrapolated r
+WHERE LOWER(r.account_name) = LOWER(:account_name)
+  -- Exclude Walmart (D2C only per reporting standards)
+  AND r.channel = 'D2C'
+ORDER BY r.campaign_end_date DESC
+LIMIT 1;</div>
+      </div>
+    </div>
+
+    <!-- STEP 1: Client Context -->
+    <div>
+      <div class="section-header">
+        <div class="step-num">1</div>
+        <div class="section-title">Client Context</div>
+      </div>
+      <div style="margin-top:12px; display:flex; flex-direction:column; gap:10px;">
+        <div class="input-group">
+          <label>Account / Client Name</label>
+          <input type="text" id="accountName" placeholder="e.g. PepsiCo" oninput="generate()">
+        </div>
+        <div class="row-2">
+          <div class="input-group">
+            <label>Brand</label>
+            <input type="text" id="brandName" placeholder="e.g. Gatorade" oninput="generate()">
+          </div>
+          <div class="input-group">
+            <label>Category</label>
+            <input type="text" id="category" placeholder="e.g. Sports Drinks" oninput="generate()">
+          </div>
+        </div>
+        <div class="row-2">
+          <div class="input-group">
+            <label>Client Contact</label>
+            <input type="text" id="contactName" placeholder="e.g. Jessica" oninput="generate()">
+          </div>
+          <div class="input-group">
+            <label>Campaign Period</label>
+            <input type="text" id="campaignPeriod" placeholder="e.g. Q1 2026" oninput="generate()">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- STEP 2: Client Objective -->
+    <div>
+      <div class="section-header">
+        <div class="step-num">2</div>
+        <div class="section-title">Client Objective</div>
+      </div>
+      <div class="objective-grid" style="margin-top:12px;">
+        <label class="objective-card" onclick="selectObjective('profitable-growth')">
+          <input type="radio" name="objective" value="profitable-growth">
+          <div class="objective-icon">📈</div>
+          <div class="objective-name">Profitable Growth</div>
+          <div class="objective-desc">Hit a CPID target, grow top + bottom line</div>
+        </label>
+        <label class="objective-card" onclick="selectObjective('gap-close')">
+          <input type="radio" name="objective" value="gap-close">
+          <div class="objective-icon">🎯</div>
+          <div class="objective-name">Gap Close</div>
+          <div class="objective-desc">Hit a specific incremental sales volume</div>
+        </label>
+        <label class="objective-card" onclick="selectObjective('new-hh')">
+          <input type="radio" name="objective" value="new-hh">
+          <div class="objective-icon">🏠</div>
+          <div class="objective-name">New HH Penetration</div>
+          <div class="objective-desc">Grow the buyer base with net-new shoppers</div>
+        </label>
+        <label class="objective-card" onclick="selectObjective('market-share')">
+          <input type="radio" name="objective" value="market-share">
+          <div class="objective-icon">🛡️</div>
+          <div class="objective-name">Market Share Defense</div>
+          <div class="objective-desc">Recapture lapsed or competitive switchers</div>
+        </label>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- STEP 3: Behavioral Segment -->
+    <div>
+      <div class="section-header">
+        <div class="step-num">3</div>
+        <div class="section-title">Primary Behavioral Segment</div>
+      </div>
+      <div class="segment-grid" style="margin-top:12px;">
+        <label class="segment-card" onclick="selectSegment('new')">
+          <input type="radio" name="segment" value="new">
+          <div class="segment-icon">✨</div>
+          <div class="segment-name">New Buyers</div>
+          <div class="segment-desc">Never purchased the brand before</div>
+        </label>
+        <label class="segment-card" onclick="selectSegment('lapsed')">
+          <input type="radio" name="segment" value="lapsed">
+          <div class="segment-icon">⏱️</div>
+          <div class="segment-name">Lapsed Buyers</div>
+          <div class="segment-desc">Past buyers, not active in 90+ days</div>
+        </label>
+        <label class="segment-card" onclick="selectSegment('loyal')">
+          <input type="radio" name="segment" value="loyal">
+          <div class="segment-icon">⭐</div>
+          <div class="segment-name">Loyal Buyers</div>
+          <div class="segment-desc">High-frequency, repeat purchasers</div>
+        </label>
+        <label class="segment-card" onclick="selectSegment('competitive')">
+          <input type="radio" name="segment" value="competitive">
+          <div class="segment-icon">🔄</div>
+          <div class="segment-name">Competitive Switchers</div>
+          <div class="segment-desc">Active buyers of competing brands</div>
+        </label>
+      </div>
+      <div style="margin-top:12px;">
+        <div class="input-group">
+          <label>% of Redemptions from This Segment</label>
+          <input type="number" id="pctRedemptions" placeholder="e.g. 62" min="0" max="100" oninput="generate()">
+          <span class="helper">What share of total redemptions came from this buyer cohort?</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- STEP 4: Results Debrief -->
+    <div id="step4-debrief">
+      <div class="section-header">
+        <div class="step-num">4</div>
+        <div class="section-title">Campaign Performance</div>
+      </div>
+      <div style="margin-top:12px; display:flex; flex-direction:column; gap:10px;">
+        <div class="row-2">
+          <div class="input-group">
+            <label>Actual CPID</label>
+            <input type="text" id="actualCpid" placeholder="e.g. $0.22" oninput="generate()">
+          </div>
+          <div class="input-group">
+            <label>CPID Target</label>
+            <input type="text" id="targetCpid" placeholder="e.g. $0.28" oninput="generate()">
+          </div>
+        </div>
+        <div class="row-2">
+          <div class="input-group">
+            <label>Incremental Sales Lift %</label>
+            <input type="text" id="liftPct" placeholder="e.g. 18%" oninput="generate()">
+          </div>
+          <div class="input-group">
+            <label>Halo Sales %</label>
+            <input type="text" id="haloPct" placeholder="e.g. 11%" oninput="generate()">
+          </div>
+        </div>
+        <div class="row-2">
+          <div class="input-group">
+            <label>Total Incremental Sales $</label>
+            <input type="text" id="incrSales" placeholder="e.g. $1.2M" oninput="generate()">
+          </div>
+          <div class="input-group">
+            <label>Offer Type</label>
+            <select id="offerType" onchange="generate()">
+              <option value="">Select...</option>
+              <option value="buy-1">Buy 1, Get $X</option>
+              <option value="buy-2">Buy 2, Get $X</option>
+              <option value="buy-x">Buy X, Get $X</option>
+              <option value="portfolio">Portfolio Offer</option>
+              <option value="trial">Trial / New Item</option>
+            </select>
+          </div>
+        </div>
+        <div class="input-group">
+          <label>Additional Context <span style="font-weight:400; color:var(--gray-500)">(optional)</span></label>
+          <textarea id="extraContext" placeholder="e.g. campaign ran during back-to-school, competing against a Powerade price rollback at Walmart..." oninput="generate()"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 4: New Client Outreach -->
+    <div id="step4-new-client" style="display:none;">
+      <div class="section-header">
+        <div class="step-num">4</div>
+        <div class="section-title">Category Context</div>
+      </div>
+      <div style="margin-top:12px; display:flex; flex-direction:column; gap:10px;">
+        <div class="row-2">
+          <div class="input-group">
+            <label>Category CPID Benchmark</label>
+            <input type="text" id="ncBenchmarkCpid" placeholder="e.g. $0.28–$0.42" oninput="generate()">
+          </div>
+          <div class="input-group">
+            <label>Category Lift Benchmark</label>
+            <input type="text" id="ncBenchmarkLift" placeholder="e.g. 12–18%" oninput="generate()">
+          </div>
+        </div>
+        <div class="input-group">
+          <label>Their Current Measurement Setup</label>
+          <select id="ncMeasurement" onchange="generate()">
+            <option value="">Select / Unknown</option>
+            <option value="circana">Circana lift studies</option>
+            <option value="nielsen">Nielsen lift studies</option>
+            <option value="internal">Internal attribution only</option>
+            <option value="none">No formal lift measurement</option>
+            <option value="other">Other / Unknown</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label>Outreach Timing / Trigger</label>
+          <select id="ncTiming" onchange="generate()">
+            <option value="">Select...</option>
+            <option value="annual">Annual planning cycle</option>
+            <option value="quarterly">Quarterly planning</option>
+            <option value="rfp">RFP / competitive review</option>
+            <option value="conference">Conference / event follow-up</option>
+            <option value="cold">Cold outreach</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label>Anticipated Objection</label>
+          <select id="ncObjection" onchange="generate()">
+            <option value="">Select / Unknown</option>
+            <option value="budget">Budget / trade spend constraints</option>
+            <option value="measurement">Measurement / incrementality skepticism</option>
+            <option value="promotions">Already running digital promotions elsewhere</option>
+            <option value="priority">Other channel is higher priority</option>
+            <option value="unknown">Unknown — first conversation</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label>Additional Context <span style="font-weight:400; color:var(--gray-500)">(optional)</span></label>
+          <textarea id="ncExtraContext" placeholder="e.g. met at Groceryshop, Q2 planning review coming up, Circana is their current measurement partner..." oninput="generate()"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 4: Lapsed Re-engagement -->
+    <div id="step4-lapsed" style="display:none;">
+      <div class="section-header">
+        <div class="step-num">4</div>
+        <div class="section-title">Re-engagement Context</div>
+      </div>
+      <div style="margin-top:12px; display:flex; flex-direction:column; gap:10px;">
+        <div class="row-2">
+          <div class="input-group">
+            <label>Last Active Campaign</label>
+            <input type="text" id="lapsedLastPeriod" placeholder="e.g. Q3 2024" oninput="generate()">
+          </div>
+          <div class="input-group">
+            <label>Prior CPID (if known)</label>
+            <input type="text" id="lapsedPriorCpid" placeholder="e.g. $0.44" oninput="generate()">
+          </div>
+        </div>
+        <div class="input-group">
+          <label>Suspected Reason for Lapse</label>
+          <select id="lapsedReason" onchange="generate()">
+            <option value="">Select / Unknown</option>
+            <option value="budget">Budget reallocation</option>
+            <option value="measurement">Measurement / incrementality questions</option>
+            <option value="competitive">Shifted to a competing channel</option>
+            <option value="team">Team or contact change</option>
+            <option value="results">Concern about prior campaign results</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label>Key Improvement to Lead With</label>
+          <select id="lapsedImprovement" onchange="generate()">
+            <option value="">Select...</option>
+            <option value="livelift">LiveLift in-flight optimization (new capability)</option>
+            <option value="cpid">Improved CPID benchmarks in this category</option>
+            <option value="segments">New behavioral segment targeting capabilities</option>
+            <option value="retailers">Expanded retailer network</option>
+            <option value="halo">Better halo + follow-on measurement</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label>Additional Context <span style="font-weight:400; color:var(--gray-500)">(optional)</span></label>
+          <textarea id="lapsedExtraContext" placeholder="e.g. new team lead is more measurement-focused, category had a tough H2, competitor ran IPN in Q4..." oninput="generate()"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Progress -->
+    <div>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+      <div class="progress-label" id="progressLabel">Fill in the fields above to generate artifacts</div>
+    </div>
+
+  </div>
+
+  <!-- RIGHT: OUTPUTS -->
+  <div class="panel-right">
+    <div class="output-header">
+      <div>
+        <div class="output-header-title" id="outputTitle">Ready to Generate</div>
+        <div class="output-header-sub" id="outputSub">Complete the form on the left to build your client artifacts</div>
+      </div>
+      <button class="download-btn hidden" id="downloadBtn" onclick="downloadAll()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Download All
+      </button>
+    </div>
+
+    <div class="tabs">
+      <div class="tab active" id="tab-nugget" onclick="switchTab('nugget')">
+        <div class="tab-dot"></div>
+        Insight Nugget
+      </div>
+      <div class="tab" id="tab-email" onclick="switchTab('email')">
+        <div class="tab-dot"></div>
+        Email Starter
+      </div>
+      <div class="tab" id="tab-slide" onclick="switchTab('slide')">
+        <div class="tab-dot"></div>
+        Money Slide
+      </div>
+    </div>
+
+    <div class="output-body" id="outputBody">
+      <div class="empty-state" id="emptyState">
+        <div class="empty-icon">⚡</div>
+        <div class="empty-title">Your artifacts will appear here</div>
+        <div class="empty-desc">Fill in the client context, objective, behavioral segment, and campaign performance on the left. Artifacts generate in real time.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+let state = {
+  activeTab: 'nugget',
+  objective: '',
+  segment: '',
+  generated: false
+};
+
+// ── Mode ───────────────────────────────────────────────────────
+let currentMode = 'debrief';
+
+function selectMode(mode, btn) {
+  currentMode = mode;
+  document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  document.getElementById('step4-debrief').style.display   = mode === 'debrief'    ? 'block' : 'none';
+  document.getElementById('step4-new-client').style.display = mode === 'new-client' ? 'block' : 'none';
+  document.getElementById('step4-lapsed').style.display     = mode === 'lapsed'     ? 'block' : 'none';
+  generate();
+}
+
+// ── Load Campaign Data ─────────────────────────────────────────
+
+function toggleLoadPanel() {
+  const body = document.getElementById('loadDataBody');
+  const chevron = document.getElementById('loadChevron');
+  const open = body.style.display !== 'none';
+  body.style.display = open ? 'none' : 'block';
+  chevron.classList.toggle('open', !open);
+}
+
+function toggleSampleFormat() {
+  const el = document.getElementById('sampleFormat');
+  const qt = document.getElementById('queryTemplate');
+  el.classList.toggle('visible');
+  if (qt.classList.contains('visible')) qt.classList.remove('visible');
+}
+
+function toggleQueryTemplate() {
+  const el = document.getElementById('queryTemplate');
+  const sf = document.getElementById('sampleFormat');
+  // Copy to clipboard and show briefly
+  const text = el.textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const hint = document.querySelector('.load-data-hint');
+    const orig = hint.innerHTML;
+    hint.innerHTML = '✅ Query copied to clipboard — paste into Databricks and run with your account name.';
+    setTimeout(() => { hint.innerHTML = orig; }, 3000);
+  }).catch(() => {
+    el.classList.toggle('visible');
+    if (sf.classList.contains('visible')) sf.classList.remove('visible');
+  });
+}
+
+function clearLoadData() {
+  document.getElementById('loadDataInput').value = '';
+  const status = document.getElementById('loadDataStatus');
+  status.textContent = '';
+  status.className = 'load-data-status';
+}
+
+// Normalize segment and objective values from various naming conventions
+function normalizeSegment(val) {
+  if (!val) return '';
+  const v = val.toLowerCase().replace(/[^a-z]/g, '');
+  if (v.includes('loyal') || v.includes('highfreq')) return 'loyal';
+  if (v.includes('lapse') || v.includes('inactive') || v.includes('reactivat')) return 'lapsed';
+  if (v.includes('new') || v.includes('firsttime') || v.includes('newtoband') || v.includes('newtobrand')) return 'new';
+  if (v.includes('compet') || v.includes('switch') || v.includes('conquest')) return 'competitive';
+  return '';
+}
+
+function normalizeObjective(val) {
+  if (!val) return '';
+  const v = val.toLowerCase().replace(/[^a-z]/g, '');
+  if (v.includes('profit') || v.includes('cpid') || v.includes('efficient')) return 'profitable-growth';
+  if (v.includes('gap') || v.includes('volume') || v.includes('close')) return 'gap-close';
+  if (v.includes('hh') || v.includes('household') || v.includes('penetrat') || v.includes('newbuyer')) return 'new-hh';
+  if (v.includes('share') || v.includes('defense') || v.includes('compet')) return 'market-share';
+  return '';
+}
+
+function loadCampaignData() {
+  const raw = document.getElementById('loadDataInput').value.trim();
+  const status = document.getElementById('loadDataStatus');
+
+  if (!raw) {
+    status.textContent = 'Paste JSON first';
+    status.className = 'load-data-status error';
+    return;
+  }
+
+  let data;
+  try {
+    data = JSON.parse(raw);
+  } catch (e) {
+    status.textContent = 'Invalid JSON — check format';
+    status.className = 'load-data-status error';
+    return;
+  }
+
+  // Helper: set field value if element exists
+  const set = (id, val) => {
+    const el = document.getElementById(id);
+    if (el && val !== undefined && val !== null && val !== '') el.value = val;
+  };
+
+  // Populate Step 1 fields
+  set('accountName', data.account_name || data.accountName);
+  set('brandName', data.brand || data.brandName || data.brand_name);
+  set('category', data.category);
+  set('contactName', data.contact_name || data.contactName || data.contact);
+  set('campaignPeriod', data.campaign_period || data.campaignPeriod || data.period);
+
+  // Populate Step 4 — Results Debrief fields
+  set('actualCpid', data.actual_cpid || data.actualCpid || data.cpid);
+  set('targetCpid', data.target_cpid || data.targetCpid || data.cpid_target);
+  set('liftPct', data.lift_pct || data.liftPct || data.lift || data.incremental_lift);
+  set('haloPct', data.halo_pct || data.haloPct || data.halo);
+  set('incrSales', data.total_incr_sales || data.incrSales || data.incremental_sales || data.total_incremental);
+  set('pctRedemptions', data.pct_redemptions || data.pctRedemptions || data.redemption_pct);
+  if (data.offer_type || data.offerType) set('offerType', data.offer_type || data.offerType);
+  set('extraContext', data.extra_context || data.extraContext || data.notes || data.context);
+
+  // Set objective via card selection
+  const obj = normalizeObjective(data.objective || data.client_objective || data.goal || '');
+  if (obj) {
+    state.objective = obj;
+    document.querySelectorAll('.objective-card input').forEach(inp => {
+      inp.checked = inp.value === obj;
+      inp.closest('.objective-card').classList.toggle('selected', inp.value === obj);
+    });
+  }
+
+  // Set segment via card selection
+  const seg = normalizeSegment(data.segment || data.top_segment || data.primary_segment || data.cohort || '');
+  if (seg) {
+    state.segment = seg;
+    document.querySelectorAll('.segment-card input').forEach(inp => {
+      inp.checked = inp.value === seg;
+      inp.closest('.segment-card').classList.toggle('selected', inp.value === seg);
+    });
+  }
+
+  // Switch to debrief mode since we loaded actual campaign data
+  selectMode('debrief', document.querySelector('.mode-card'));
+
+  // Count populated fields for feedback
+  const populated = [
+    data.account_name || data.accountName,
+    data.brand || data.brandName,
+    data.campaign_period || data.campaignPeriod,
+    obj, seg,
+    data.actual_cpid || data.actualCpid,
+    data.lift_pct || data.liftPct,
+  ].filter(Boolean).length;
+
+  status.textContent = `✓ ${populated} fields loaded`;
+  status.className = 'load-data-status success';
+
+  generate();
+
+  // Auto-close panel after successful load
+  setTimeout(() => {
+    document.getElementById('loadDataBody').style.display = 'none';
+    document.getElementById('loadChevron').classList.remove('open');
+  }, 1800);
+}
+
+// ── Selection helpers ──────────────────────────────────────────
+
+function selectObjective(val) {
+  state.objective = val;
+  document.querySelectorAll('.objective-card').forEach(c => c.classList.remove('selected'));
+  event.currentTarget.classList.add('selected');
+  generate();
+}
+
+function selectSegment(val) {
+  state.segment = val;
+  document.querySelectorAll('.segment-card').forEach(c => c.classList.remove('selected'));
+  event.currentTarget.classList.add('selected');
+  generate();
+}
+
+function switchTab(tab) {
+  state.activeTab = tab;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  if (state.generated) renderOutput();
+}
+
+// ── Gather form values ─────────────────────────────────────────
+
+function getData() {
+  return {
+    accountName: v('accountName') || '[Account]',
+    brandName: v('brandName') || '[Brand]',
+    category: v('category') || 'this category',
+    contactName: v('contactName') || 'there',
+    campaignPeriod: v('campaignPeriod') || 'the recent campaign period',
+    objective: state.objective,
+    segment: state.segment,
+    pctRedemptions: v('pctRedemptions'),
+    actualCpid: v('actualCpid'),
+    targetCpid: v('targetCpid'),
+    liftPct: v('liftPct'),
+    haloPct: v('haloPct'),
+    incrSales: v('incrSales'),
+    offerType: v('offerType'),
+    extraContext: v('extraContext')
+  };
+}
+
+function v(id) {
+  const el = document.getElementById(id);
+  return el ? el.value.trim() : '';
+}
+
+// ── Completeness score ─────────────────────────────────────────
+
+function getProgress(d) {
+  if (currentMode === 'new-client') {
+    const fields = [d.accountName !== '[Account]', d.brandName !== '[Brand]',
+      !!d.objective, !!d.segment, !!d.ncBenchmarkCpid, !!d.ncTiming];
+    return Math.round((fields.filter(Boolean).length / fields.length) * 100);
+  }
+  if (currentMode === 'lapsed') {
+    const fields = [d.accountName !== '[Account]', d.brandName !== '[Brand]',
+      !!d.objective, !!d.segment, !!d.lapsedLastPeriod, !!d.lapsedImprovement];
+    return Math.round((fields.filter(Boolean).length / fields.length) * 100);
+  }
+  const fields = [d.accountName !== '[Account]', d.brandName !== '[Brand]',
+    !!d.objective, !!d.segment, !!d.pctRedemptions,
+    !!d.actualCpid, !!d.targetCpid, !!d.liftPct];
+  return Math.round((fields.filter(Boolean).length / fields.length) * 100);
+}
+
+function getDataNC() {
+  const base = getData();
+  return {
+    ...base,
+    ncBenchmarkCpid: v('ncBenchmarkCpid'),
+    ncBenchmarkLift: v('ncBenchmarkLift'),
+    ncMeasurement: v('ncMeasurement'),
+    ncTiming: v('ncTiming'),
+    ncObjection: v('ncObjection'),
+    ncExtraContext: v('ncExtraContext')
+  };
+}
+
+function getDataLapsed() {
+  const base = getData();
+  return {
+    ...base,
+    lapsedLastPeriod: v('lapsedLastPeriod'),
+    lapsedPriorCpid: v('lapsedPriorCpid'),
+    lapsedReason: v('lapsedReason'),
+    lapsedImprovement: v('lapsedImprovement'),
+    lapsedExtraContext: v('lapsedExtraContext')
+  };
+}
+
+// ── Main generate ──────────────────────────────────────────────
+
+function generate() {
+  const d = currentMode === 'new-client' ? getDataNC()
+          : currentMode === 'lapsed'     ? getDataLapsed()
+          : getData();
+  const pct = getProgress(d);
+
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressLabel').textContent =
+    pct < 30 ? 'Fill in the fields above to generate artifacts' :
+    pct < 60 ? 'Good start — add more detail for richer artifacts...' :
+    pct < 85 ? 'Almost there — artifacts are generating below!' :
+    '✓ All key fields complete';
+
+  const hasEnough = pct >= 40 && d.segment && d.objective;
+
+  if (!hasEnough) {
+    state.generated = false;
+    document.getElementById('emptyState').classList.remove('hidden');
+    const modeLabel = currentMode === 'new-client' ? 'New Client Outreach' :
+                      currentMode === 'lapsed'      ? 'Lapsed Re-engagement' : 'Results Debrief';
+    document.getElementById('outputTitle').textContent = `Ready to Generate — ${modeLabel}`;
+    document.getElementById('outputSub').textContent = 'Complete the form on the left to build your client artifacts';
+    document.getElementById('downloadBtn').classList.add('hidden');
+    return;
+  }
+
+  state.generated = true;
+  document.getElementById('emptyState').classList.add('hidden');
+  const modeTag = currentMode === 'new-client' ? ' · New Client Outreach'
+                : currentMode === 'lapsed'      ? ' · Lapsed Re-engagement' : '';
+  document.getElementById('outputTitle').textContent = `${d.brandName} · ${d.accountName}${modeTag}`;
+  document.getElementById('outputSub').textContent = `${getSegmentLabel(d.segment)} segment · ${getObjectiveLabel(d.objective)} objective${d.campaignPeriod ? ' · ' + d.campaignPeriod : ''}`;
+  document.getElementById('downloadBtn').classList.remove('hidden');
+
+  renderOutput();
+}
+
+// ── Render output by tab ───────────────────────────────────────
+
+function renderOutput() {
+  const d = currentMode === 'new-client' ? getDataNC()
+          : currentMode === 'lapsed'     ? getDataLapsed()
+          : getData();
+  const body = document.getElementById('outputBody');
+  const empty = document.getElementById('emptyState');
+
+  body.innerHTML = '';
+  body.appendChild(empty);
+
+  if (currentMode === 'new-client') {
+    if (state.activeTab === 'nugget') renderNuggetNC(d, body);
+    else if (state.activeTab === 'email') renderEmailNC(d, body);
+    else if (state.activeTab === 'slide') renderSlideNC(d, body);
+  } else if (currentMode === 'lapsed') {
+    if (state.activeTab === 'nugget') renderNuggetLapsed(d, body);
+    else if (state.activeTab === 'email') renderEmailLapsed(d, body);
+    else if (state.activeTab === 'slide') renderSlideLapsed(d, body);
+  } else {
+    if (state.activeTab === 'nugget') renderNugget(d, body);
+    else if (state.activeTab === 'email') renderEmail(d, body);
+    else if (state.activeTab === 'slide') renderSlide(d, body);
+  }
+}
+
+// ── INSIGHT NUGGET ─────────────────────────────────────────────
+
+function renderNugget(d, body) {
+  const nugget = buildNugget(d);
+  const card = html(`
+    <div class="artifact-card">
+      <div class="artifact-header">
+        <span class="artifact-type">⚡ Insight Nugget — Client-Ready</span>
+        <button class="copy-btn" onclick="copyText(this, 'nugget-text')">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+          Copy
+        </button>
+      </div>
+      <div class="artifact-body">
+        <div class="tag-row">
+          <span class="tag orange">${getSegmentLabel(d.segment)}</span>
+          <span class="tag navy">${getObjectiveLabel(d.objective)}</span>
+          ${d.campaignPeriod ? `<span class="tag">${d.campaignPeriod}</span>` : ''}
+        </div>
+        <p class="insight-text" id="nugget-text" style="margin-top:14px;">${nugget}</p>
+      </div>
+    </div>
+  `);
+  body.appendChild(card);
+
+  // Usage tips
+  const tips = html(`
+    <div class="artifact-card">
+      <div class="artifact-header"><span class="artifact-type">💡 How to Use This Nugget</span></div>
+      <div class="artifact-body">
+        <ul style="list-style:none; display:flex; flex-direction:column; gap:10px;">
+          ${getTips(d.objective, d.segment).map(t => `
+            <li style="display:flex; gap:10px; font-size:13px; color:var(--gray-700); line-height:1.5;">
+              <span style="color:var(--orange); flex-shrink:0;">${t.icon}</span>
+              <span><strong>${t.who}:</strong> ${t.tip}</span>
+            </li>`).join('')}
+        </ul>
+      </div>
+    </div>
+  `);
+  body.appendChild(tips);
+
+  // Objection prep
+  const obj = getObjectionPrep(d.objective, d.segment, d);
+  if (obj) {
+    const objCard = html(`
+      <div class="artifact-card">
+        <div class="artifact-header"><span class="artifact-type">🛡️ Likely Objection + Approved Response</span></div>
+        <div class="artifact-body">
+          <div style="background:var(--gray-50); border-radius:8px; padding:14px 16px; border:1px solid var(--gray-200); margin-bottom:12px;">
+            <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--gray-500); margin-bottom:6px;">Client May Say</div>
+            <div style="font-size:13px; font-style:italic; color:var(--gray-700);">"${obj.objection}"</div>
+          </div>
+          <div style="font-size:13px; line-height:1.7; color:var(--gray-700);">${obj.response}</div>
+        </div>
+      </div>
+    `);
+    body.appendChild(objCard);
+  }
+
+  addDisclaimer(body);
+}
+
+// ── EMAIL STARTER ──────────────────────────────────────────────
+
+function buildVisualEmail(d, subject, emailBody) {
+  // Split body into paragraphs: [greeting, opening, nugget, closing]
+  const paras = emailBody.split('\n\n').filter(p => p.trim());
+  const greeting = paras[0] || '';
+  const opening  = paras[1] || '';
+  const nugget   = paras[2] || '';
+  const closing  = paras.slice(3).join('\n\n') || '';
+
+  // Stat cards — only show if values are present
+  const stats = [];
+  if (d.actualCpid) {
+    const eff = d.targetCpid ? cpidVsTarget(d.actualCpid, d.targetCpid) : null;
+    const isBeating = eff && eff.includes('more efficient');
+    stats.push({
+      value: d.actualCpid,
+      label: 'CPID',
+      badge: eff ? (isBeating ? '↑ ' + eff : '↑ ' + eff) : null,
+      badgeClass: eff ? (isBeating ? '' : 'above') : ''
+    });
+  }
+  if (d.liftPct) stats.push({ value: d.liftPct, label: 'Incremental Lift', badge: null });
+  if (d.haloPct) stats.push({ value: d.haloPct, label: 'Halo Contribution', badge: null });
+  if (d.incrSales) stats.push({ value: d.incrSales, label: 'Total Incremental $', badge: null, highlight: true });
+
+  const colCount = Math.min(stats.length, 4) || 1;
+  const statsHTML = stats.length > 0 ? `
+    <div class="ve-snapshot">
+      <div class="ve-snapshot-label">📊 Performance Snapshot — ${d.brandName || 'Brand'} ${d.campaignPeriod || ''}</div>
+      <div class="ve-stats-row" style="grid-template-columns: repeat(${colCount}, 1fr);">
+        ${stats.map(s => `
+          <div class="ve-stat">
+            <div class="ve-stat-value${s.highlight ? ' highlight' : ''}">${s.value}</div>
+            <div class="ve-stat-label">${s.label}</div>
+            ${s.badge ? `<div class="ve-stat-badge${s.badgeClass ? ' ' + s.badgeClass : ''}">${s.badge}</div>` : ''}
+          </div>
+        `).join('')}
+      </div>
+    </div>` : '';
+
+  // Extract CTA sentence from closing (last sentence that has "30 minutes" or "connect")
+  const closingLines = closing.split('\n').filter(l => l.trim());
+  const ctaLine = closingLines.find(l => /30 minute|connect|calendar|time/i.test(l)) || '';
+  const bodyClosing = closingLines.filter(l => l !== ctaLine).join('\n');
+
+  return `
+    <div class="visual-email">
+      <div class="ve-header">
+        <div class="ve-logo">
+          <svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/></svg>
+        </div>
+        <div>
+          <div class="ve-header-text">Ibotta Performance Network</div>
+          <div class="ve-header-sub">Client Insights — ${d.campaignPeriod || 'Campaign Update'}</div>
+        </div>
+      </div>
+      <div class="ve-orange-bar"></div>
+      <div class="ve-subject-bar">
+        <span class="ve-subject-label">Subject</span>
+        <span class="ve-subject-value">${subject}</span>
+      </div>
+      <div class="ve-body">
+        <div class="ve-para">${greeting}</div>
+        <div class="ve-para">${opening}</div>
+        ${statsHTML}
+        <div class="ve-para">${nugget}</div>
+        ${bodyClosing ? `<div class="ve-para">${bodyClosing}</div>` : ''}
+        ${ctaLine ? `<a class="ve-cta" href="#">${ctaLine.replace(/^would you have |^would it make sense to /i, '').trim()} →</a>` : ''}
+        <div class="ve-sig">Best,<br><em>[Your name]</em><br><span style="color:var(--orange);font-size:12px;">Ibotta Performance Network</span></div>
+      </div>
+      <div class="ve-footer">
+        <div class="ve-footer-dot"></div>
+        All performance data measured using Matched Audiences methodology. Reviewed by Client Analytics before external sharing.
+      </div>
+    </div>`;
+}
+
+function renderEmail(d, body) {
+  const { subject, emailBody } = buildEmail(d);
+  const fullText = `Subject: ${subject}\n\n${emailBody}`;
+
+  const card = document.createElement('div');
+  card.className = 'artifact-card';
+  card.innerHTML = `
+    <div class="artifact-header">
+      <span class="artifact-type">✉️ Email Starter — Personalize Before Sending</span>
+      <button class="copy-btn" id="email-copy-btn" onclick="copyText(this, 'email-full')">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+        Copy
+      </button>
+    </div>
+    <div class="artifact-body">
+      <div id="email-full" style="display:none">${fullText}</div>
+      <div class="email-mode-toggle">
+        <button class="email-mode-btn active" id="btn-plain" onclick="switchEmailMode('plain')">Plain Text</button>
+        <button class="email-mode-btn" id="btn-visual" onclick="switchEmailMode('visual')">✦ Visual</button>
+      </div>
+      <div id="email-plain-view">
+        <div class="email-subject">
+          <div class="email-subject-label">Subject Line</div>
+          <div class="email-subject-text">${subject}</div>
+        </div>
+        <div class="email-body">${emailBody}</div>
+      </div>
+      <div id="email-visual-view" style="display:none;">
+        ${buildVisualEmail(d, subject, emailBody)}
+      </div>
+    </div>
+  `;
+  body.appendChild(card);
+
+  // Personalization prompts
+  const personCard = html(`
+    <div class="artifact-card">
+      <div class="artifact-header"><span class="artifact-type">🎯 Personalization Checklist</span></div>
+      <div class="artifact-body">
+        <ul style="list-style:none; display:flex; flex-direction:column; gap:8px;">
+          ${getPersonalizationChecklist(d).map(item => `
+            <li style="display:flex; gap:10px; align-items:flex-start; font-size:13px; color:var(--gray-700); line-height:1.5;">
+              <span style="color:var(--orange); flex-shrink:0; font-size:14px;">○</span>
+              ${item}
+            </li>`).join('')}
+        </ul>
+      </div>
+    </div>
+  `);
+  body.appendChild(personCard);
+  addDisclaimer(body);
+}
+
+// ── MONEY SLIDE ────────────────────────────────────────────────
+
+function renderSlide(d, body) {
+  const slide = buildSlide(d);
+  const card = html(`
+    <div class="artifact-card">
+      <div class="artifact-header">
+        <span class="artifact-type">📊 Money Slide — Visual Narrative</span>
+        <button class="copy-btn" onclick="copyText(this, 'slide-script-text')">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+          Copy Script
+        </button>
+      </div>
+      <div class="artifact-body">
+        <div class="slide-preview">
+          <div class="slide-headline">${slide.headline}</div>
+          <ul class="slide-bullets">
+            ${slide.bullets.map(b => `<li class="slide-bullet"><div class="bullet-marker"></div><div>${b}</div></li>`).join('')}
+          </ul>
+          <div class="slide-sowhat"><strong>The So-What →</strong> ${slide.soWhat}</div>
+        </div>
+        <div class="script-section">
+          <div class="script-label">Presenter Script</div>
+          <div class="script-text" id="slide-script-text">${slide.script}</div>
+        </div>
+      </div>
+    </div>
+  `);
+  body.appendChild(card);
+
+  // Slide notes
+  const notes = html(`
+    <div class="artifact-card">
+      <div class="artifact-header"><span class="artifact-type">📝 Slide Build Notes</span></div>
+      <div class="artifact-body">
+        <ul style="list-style:none; display:flex; flex-direction:column; gap:10px;">
+          ${getSlideBuildNotes(d).map(n => `
+            <li style="display:flex; gap:10px; font-size:13px; color:var(--gray-700); line-height:1.5;">
+              <span style="color:var(--navy); flex-shrink:0;">${n.icon}</span>
+              <span><strong>${n.label}:</strong> ${n.note}</span>
+            </li>`).join('')}
+        </ul>
+      </div>
+    </div>
+  `);
+  body.appendChild(notes);
+  addDisclaimer(body);
+}
+
+// ── CONTENT GENERATION ─────────────────────────────────────────
+
+// ══════════════════════════════════════════════════════════════
+// NEW CLIENT OUTREACH — Artifact builders
+// ══════════════════════════════════════════════════════════════
+
+function renderNuggetNC(d, body) {
+  const nugget = buildNuggetNC(d);
+  const card = html(`
+    <div class="artifact-card">
+      <div class="artifact-header">
+        <span class="artifact-type">🎯 Prospect Insight — Category Benchmark</span>
+        <button class="copy-btn" onclick="copyText(this, 'nc-nugget-text')">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+          Copy
+        </button>
+      </div>
+      <div class="artifact-body">
+        <div class="tag-row">
+          <span class="tag orange">${getSegmentLabel(d.segment)}</span>
+          <span class="tag navy">${getObjectiveLabel(d.objective)}</span>
+          <span class="tag green">New Client</span>
+        </div>
+        <p class="insight-text" id="nc-nugget-text" style="margin-top:14px;">${nugget}</p>
+      </div>
+    </div>
+  `);
+  body.appendChild(card);
+
+  const objCard = getObjectionPrepNC(d);
+  if (objCard) {
+    const oCard = html(`
+      <div class="artifact-card">
+        <div class="artifact-header"><span class="artifact-type">🛡️ Anticipated Objection + Response</span></div>
+        <div class="artifact-body">
+          <div style="font-size:13px; font-weight:600; color:var(--gray-700); margin-bottom:8px;">They might say: "${objCard.objection}"</div>
+          <div style="font-size:13px; color:var(--gray-700); line-height:1.6; padding:12px; background:var(--gray-50); border-radius:8px; border-left:3px solid var(--orange);">${objCard.response}</div>
+        </div>
+      </div>
+    `);
+    body.appendChild(oCard);
+  }
+  addDisclaimer(body);
+}
+
+function buildNuggetNC(d) {
+  const seg = getSegmentPhrase(d.segment);
+  const cpidLine = d.ncBenchmarkCpid ? `with CPID benchmarks in the ${d.ncBenchmarkCpid} range` : 'at contribution-margin-positive CPID';
+  const liftLine = d.ncBenchmarkLift ? ` and incremental sales lift of ${d.ncBenchmarkLift}` : '';
+  const category = d.category || 'this category';
+  const brand = d.brandName || '[Brand]';
+
+  const measureBridge = {
+    'circana': `Because you're already running Circana lift studies, you know exactly what incrementality looks like — Ibotta's Matched Audiences methodology is directionally identical, delivered on a rolling basis at no additional cost.`,
+    'nielsen': `Because you're already running Nielsen lift studies, you know exactly what incrementality looks like — Ibotta's Matched Audiences methodology is directionally identical, delivered on a rolling basis at no additional cost.`,
+    'internal': `One gap with internal attribution is the inability to isolate incremental sales from volume that would have happened anyway. Ibotta's Matched Audiences approach controls for exactly that — the same methodology Circana uses for paid lift studies.`,
+    'none': `For a brand without a formal lift measurement partner, this is a meaningful gap — most trade spend is unmeasured. Ibotta provides rolling incrementality reporting using the same Matched Audiences methodology as Circana and Nielsen, at no additional charge.`,
+  }[d.ncMeasurement] || `Ibotta's Matched Audiences measurement methodology is directionally identical to Circana and Nielsen lift studies — and it's included at no additional cost.`;
+
+  const timingLine = {
+    'annual': `With annual planning underway`,
+    'quarterly': `As you move into your next planning cycle`,
+    'rfp': `As you evaluate your performance marketing mix`,
+    'conference': `Following our recent conversation`,
+    'cold': `As you think about your ${getObjectiveLabel(d.objective).toLowerCase()} priorities`,
+  }[d.ncTiming] || `As you think about your ${getObjectiveLabel(d.objective).toLowerCase()} priorities`;
+
+  const templates = {
+    'profitable-growth': `${timingLine}, here's a data point worth considering: brands in ${category} targeting ${seg} through Ibotta's IPN have delivered ${cpidLine}${liftLine} — with every incremental dollar coming from genuinely new or reactivated purchase occasions, not subsidized volume. ${measureBridge} The question for ${brand} isn't whether the economics work — the category data says they do. It's whether ${brand} wants to be the brand in ${category} that's capturing this efficiency, or the one that finds out a competitor already is.`,
+    'gap-close': `${timingLine}, here's what the category data shows: brands in ${category} targeting ${seg} through Ibotta's IPN have generated ${cpidLine}${liftLine} in genuinely additive, non-subsidizing volume. ${measureBridge} For a brand with a gap to close, performance marketing that pays for itself in the period — and that you can measure at the item level — is a different kind of spend than traditional trade. This is the conversation worth having before ${brand}'s next planning lock.`,
+    'new-hh': `${timingLine}, here's a household penetration data point from the ${category} category: brands targeting ${seg} through Ibotta's IPN have identified and converted new households ${cpidLine}${liftLine} — using behavioral purchase data across 80+ retailers rather than panel estimates. ${measureBridge} For ${brand}, the opportunity is clear: Ibotta's cross-retailer item-level data can find the households that aren't in your current franchise and put a targeted offer in front of them.`,
+    'market-share': `${timingLine}, here's what's happening in ${category}: brands targeting ${seg} through Ibotta's IPN are capturing competitive switchers ${cpidLine}${liftLine} — with surgical precision, at contribution-margin-positive economics. ${measureBridge} Every competitive buyer that a brand in ${category} doesn't target is a buyer that a competitor could convert. For ${brand}, this is a proactive strategy, not a reactive one.`,
+  };
+
+  return templates[d.objective] || `${timingLine}, here's a category benchmark worth sharing: brands in ${category} targeting ${seg} through Ibotta's IPN have delivered ${cpidLine}${liftLine}. ${measureBridge} The data supports a conversation about what this could look like for ${brand}.`;
+}
+
+function renderEmailNC(d, body) {
+  const subject = buildEmailSubjectNC(d);
+  const emailBody = buildEmailBodyNC(d);
+  const fullText = `Subject: ${subject}\n\n${emailBody}`;
+  const card = html(`
+    <div class="artifact-card">
+      <div class="artifact-header">
+        <span class="artifact-type">✉️ Prospecting Email — Curiosity Hook</span>
+        <button class="copy-btn" onclick="copyText(this, 'nc-email-full')">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+          Copy
+        </button>
+      </div>
+      <div class="artifact-body">
+        <div id="nc-email-full" style="display:none">${fullText}</div>
+        <div class="email-subject">
+          <div class="email-subject-label">Subject Line</div>
+          <div class="email-subject-text">${subject}</div>
+        </div>
+        <div class="email-body">${emailBody}</div>
+      </div>
+    </div>
+  `);
+  body.appendChild(card);
+  addDisclaimer(body);
+}
+
+function buildEmailSubjectNC(d) {
+  const subjects = {
+    'profitable-growth': `${d.brandName}: a ${d.category || 'category'} benchmark I thought you'd want to see`,
+    'gap-close': `${d.brandName} — a data point on closing volume gaps in ${d.category || 'your category'}`,
+    'new-hh': `Household penetration in ${d.category || 'your category'} — a benchmark worth 5 minutes`,
+    'market-share': `${d.category || 'Category'} competitive dynamics — something relevant for ${d.brandName}`,
+  };
+  return subjects[d.objective] || `${d.brandName}: a ${d.category || 'category'} performance insight worth sharing`;
+}
+
+function buildEmailBodyNC(d) {
+  const contact = d.contactName || 'there';
+  const seg = getSegmentPhrase(d.segment);
+  const nugget = buildNuggetNC(d);
+
+  const opens = {
+    'annual': `I know annual planning is the moment when everyone is fighting for budget and justifying every line item. I wanted to share a category benchmark before your cycle locks — one that I think reframes where performance marketing fits in the ${d.brandName} mix.`,
+    'quarterly': `As you move into your next planning cycle, I wanted to share a data point on what's working in ${d.category || 'your category'} — specifically around the ${getSegmentLabel(d.segment).toLowerCase()} targeting opportunity.`,
+    'rfp': `As you evaluate your performance marketing mix, I wanted to make sure you had category benchmark data from Ibotta in hand — specifically what we're seeing for brands targeting ${seg}.`,
+    'conference': `Really enjoyed our conversation. I wanted to follow up with the specific benchmark data I mentioned — here's what we're seeing in ${d.category || 'your category'}.`,
+    'cold': `I've been looking at what ${d.category || 'your category'} brands are driving through Ibotta's IPN, and I came across a benchmark that I think is directly relevant to ${d.brandName}'s ${getObjectiveLabel(d.objective).toLowerCase()} goals.`,
+  }[d.ncTiming] || `I've been looking at ${d.category || 'your category'} performance data on Ibotta's IPN and wanted to share a benchmark that I think is directly relevant to ${d.brandName}.`;
+
+  const close = `I'd love to share the full category analysis and talk through what a targeting hypothesis looks like for ${d.brandName} specifically. Would you have 20 minutes in the next couple of weeks?
+
+Best,
+[Your name]`;
+
+  return `Hi ${contact},
+
+${opens}
+
+${nugget}
+
+${close}`;
+}
+
+function renderSlideNC(d, body) {
+  const card = html(`
+    <div class="artifact-card">
+      <div class="artifact-header">
+        <span class="artifact-type">📊 Prospecting Slide — "What This Could Look Like"</span>
+      </div>
+      <div class="artifact-body">
+        <div class="slide-preview">
+          <div class="slide-headline">${buildSlideHeadlineNC(d)}</div>
+          <ul class="slide-bullets">
+            ${buildSlideBulletsNC(d).map(b => `<li class="slide-bullet"><div class="bullet-marker"></div><div>${b}</div></li>`).join('')}
+          </ul>
+          <div class="slide-sowhat"><strong>The Opportunity →</strong> ${buildSlideSoWhatNC(d)}</div>
+        </div>
+        <div class="script-section">
+          <div class="script-label">Presenter Script</div>
+          <div class="script-text">${buildSlideScriptNC(d)}</div>
+        </div>
+      </div>
+    </div>
+  `);
+  body.appendChild(card);
+  addDisclaimer(body);
+}
+
+function buildSlideHeadlineNC(d) {
+  const seg = getSegmentLabel(d.segment);
+  const headlines = {
+    'profitable-growth': `<span>What Profitable Growth Looks Like</span> in ${d.category || 'Your Category'}`,
+    'gap-close': `<span>The Gap-Close Opportunity</span> Is Already Proven in ${d.category || 'Your Category'}`,
+    'new-hh': `<span>New Households Are Out There.</span> Here's How to Find Them.`,
+    'market-share': `<span>Competitive Buyers Are Being Targeted.</span> The Question Is: By Whom?`,
+  };
+  return headlines[d.objective] || `<span>${d.brandName}:</span> The ${d.category || 'Category'} Benchmark Story`;
+}
+
+function buildSlideBulletsNC(d) {
+  const bullets = [];
+  if (d.ncBenchmarkCpid) bullets.push(`${d.category || 'Category'} brands targeting ${getSegmentPhrase(d.segment)} through IPN have delivered ${d.ncBenchmarkCpid} CPID — contribution-margin positive for most CPG margin profiles`);
+  if (d.ncBenchmarkLift) bullets.push(`Incremental sales lift of ${d.ncBenchmarkLift} — measured using Matched Audiences methodology, the same approach as Circana and Nielsen paid lift studies`);
+  bullets.push(`Ibotta's cross-retailer, item-level behavioral data identifies ${getSegmentPhrase(d.segment)} with precision unavailable through traditional media targeting`);
+  bullets.push(`Incrementality reporting included at no additional cost — rolling CPID measurement across the full campaign flight`);
+  if (d.ncExtraContext) bullets.push(`Context: ${d.ncExtraContext}`);
+  return bullets;
+}
+
+function buildSlideSoWhatNC(d) {
+  const soWhats = {
+    'profitable-growth': `The category benchmark confirms the economics work. The conversation for ${d.brandName} is: what's the right scale, and what's the right segment mix?`,
+    'gap-close': `Additive, non-subsidizing volume at proven CPID is the clearest gap-close lever in the ${d.category || 'category'} playbook right now.`,
+    'new-hh': `The households are there. Ibotta's behavioral targeting can find them. The question is how fast ${d.brandName} wants to move.`,
+    'market-share': `Competitive buyers are reachable, convertible, and worth more than their first purchase. The brand that moves first wins the relationship.`,
+  };
+  return soWhats[d.objective] || `The category data supports a pilot. The next step is translating these benchmarks into a ${d.brandName}-specific hypothesis.`;
+}
+
+function buildSlideScriptNC(d) {
+  const scripts = {
+    'profitable-growth': `"I want to be direct about why I'm sharing this: this isn't a pitch deck, it's a category benchmark. What we're seeing from brands in ${d.category || 'your space'} targeting ${getSegmentPhrase(d.segment)} tells us something important — the economics of this targeting approach work. ${d.ncBenchmarkCpid ? 'CPID in the ' + d.ncBenchmarkCpid + ' range. ' : ''}${d.ncBenchmarkLift ? 'Incremental lift of ' + d.ncBenchmarkLift + '. ' : ''}Those aren't projections — those are results from brands running right now. What I want to explore with you is whether ${d.brandName} should be one of them."`,
+    'gap-close': `"Here's the setup: ${d.brandName} has a volume target. The question isn't whether there's a path to closing it — the category data says there is. The question is whether performance marketing spend that pays for itself at ${d.ncBenchmarkCpid ? d.ncBenchmarkCpid + ' CPID' : 'contribution-margin-positive CPID'} is in your plan. That's what I want to explore."`,
+    'new-hh': `"Every brand in ${d.category || 'your category'} has a household penetration goal. Most of them are measuring it with panel data that tells them what happened six weeks ago. What I want to show you is how Ibotta identifies and converts net-new households in real time — at the item level, across 80+ retailers. ${d.ncBenchmarkCpid ? 'The benchmark CPID is ' + d.ncBenchmarkCpid + '. ' : ''}This is a fundamentally different kind of targeting than what's in most brand plans."`,
+    'market-share': `"Here's the competitive reality: brands in ${d.category || 'your category'} are already using behavioral targeting to identify and convert ${getSegmentPhrase(d.segment)}. The CPID to do it is ${d.ncBenchmarkCpid ? d.ncBenchmarkCpid : 'contribution-margin-positive'}. The question for ${d.brandName} isn't whether this works — it does. It's whether you want to be on offense or defense."`,
+  };
+  return scripts[d.objective] || `"What you're looking at is a category benchmark, not a projection. Brands in ${d.category || 'your space'} are delivering these results right now. I want to show you what a ${d.brandName}-specific version of this looks like."`;
+}
+
+function getObjectionPrepNC(d) {
+  const objections = {
+    'budget': { objection: `We don't have budget for another digital program right now.`, response: `Understood — and this is exactly the conversation worth having before the budget is allocated, not after. The CPID framework matters here: at ${d.ncBenchmarkCpid || 'contribution-margin-positive'} CPID, this spend pays for itself within the campaign period. It's not a media line item — it's a funded growth program. The question is whether to carve out a pilot from existing trade budget or performance marketing budget to prove the model before the next planning cycle.` },
+    'measurement': { objection: `We've tried performance marketing before and couldn't prove incrementality.`, response: `This is the most common thing we hear — and it's the right question to push on. Ibotta's Matched Audiences methodology is an exposure-based lift study: we compare two statistically identical consumer groups, the only variable being offer exposure. ${d.ncMeasurement === 'circana' || d.ncMeasurement === 'nielsen' ? `Because you already run ${d.ncMeasurement === 'circana' ? 'Circana' : 'Nielsen'} lift studies, you know this methodology — it's directionally identical. ` : ``}We provide rolling CPID and incrementality reporting throughout the campaign, at no additional cost. You can see whether it's working before the flight ends.` },
+    'promotions': { objection: `We're already running digital promotions — how is this different?`, response: `The core difference is targeting precision and measurement. Most digital promotion platforms serve offers broadly — you get volume, but you can't distinguish incremental volume from subsidized volume. Ibotta targets behaviorally: we identify ${getSegmentPhrase(d.segment)} specifically, using item-level purchase history across 80+ retailers. The result is that a much higher proportion of redemptions are genuinely incremental. The CPID framework makes this visible: ${d.ncBenchmarkCpid ? 'brands in ' + (d.category||'your category') + ' are seeing ' + d.ncBenchmarkCpid + ' CPID. ' : ''}That's the number to compare against your current programs.` },
+    'priority': { objection: `We're focused on [other channel] right now and don't have capacity to add something new.`, response: `I hear you on capacity — and I'm not asking you to replace what's working. What I'm asking is whether there's a ${getSegmentLabel(d.segment).toLowerCase()} segment story that isn't being told in your current mix. Ibotta targets buyers your current programs can't reach — ${getSegmentPhrase(d.segment)} with verified item-level purchase history. That's additive, not competitive. A pilot doesn't require a lot of bandwidth — CA handles the reporting.` },
+    'unknown': { objection: `Tell me more about why this is relevant for us specifically.`, response: `Great question — and the honest answer is that I'm coming to you with category data, not ${d.brandName}-specific data, because you haven't run with us yet. What the ${d.category || 'category'} benchmark tells us is that the targeting approach works for brands with a ${getObjectiveLabel(d.objective).toLowerCase()} objective. What I want to do is build a ${d.brandName}-specific hypothesis with you — what segment, what CPID target, what offer structure — and let you decide if the model is worth a pilot.` },
+  };
+  return objections[d.ncObjection] || objections['unknown'];
+}
+
+// ══════════════════════════════════════════════════════════════
+// LAPSED RE-ENGAGEMENT — Artifact builders
+// ══════════════════════════════════════════════════════════════
+
+function renderNuggetLapsed(d, body) {
+  const nugget = buildNuggetLapsed(d);
+  const card = html(`
+    <div class="artifact-card">
+      <div class="artifact-header">
+        <span class="artifact-type">🔄 Re-engagement Nugget — What's Changed</span>
+        <button class="copy-btn" onclick="copyText(this, 'lapsed-nugget-text')">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+          Copy
+        </button>
+      </div>
+      <div class="artifact-body">
+        <div class="tag-row">
+          <span class="tag orange">${getSegmentLabel(d.segment)}</span>
+          <span class="tag navy">${getObjectiveLabel(d.objective)}</span>
+          <span class="tag" style="background:#E8EDF5;color:var(--navy);">Re-engagement</span>
+        </div>
+        <p class="insight-text" id="lapsed-nugget-text" style="margin-top:14px;">${nugget}</p>
+      </div>
+    </div>
+  `);
+  body.appendChild(card);
+  addDisclaimer(body);
+}
+
+function buildNuggetLapsed(d) {
+  const seg = getSegmentPhrase(d.segment);
+  const lastPeriod = d.lapsedLastPeriod ? `since ${d.brandName}'s last IPN campaign in ${d.lapsedLastPeriod}` : 'since your last campaign with us';
+  const priorCpid = d.lapsedPriorCpid ? ` — including accounts that previously delivered ${d.lapsedPriorCpid} CPID` : '';
+
+  const improvements = {
+    'livelift': `LiveLift now provides in-flight CPID visibility and optimization — meaning underperforming offers can be adjusted mid-campaign rather than discovering the issue in the post-campaign read. This is a fundamental shift in how performance risk is managed.`,
+    'cpid': `CPID benchmarks in ${d.category || 'this category'} have improved materially for brands targeting ${seg}. The efficiency story is stronger now than when ${d.brandName} last ran.`,
+    'segments': `Behavioral segment targeting has expanded significantly — the ability to identify and separately target ${seg} with precision has improved, which means the incremental efficiency of each cohort is higher.`,
+    'retailers': `The IPN retailer network has expanded, which means ${seg} buyers are now reachable across more purchase occasions — improving both reach and incrementality measurement.`,
+    'halo': `Halo and follow-on measurement has been refined — we now report in-period, halo across the brand portfolio, and follow-on sales 60 days post-campaign together as a single incrementality view. The full value of the campaign is visible in a way it wasn't before.`,
+  }[d.lapsedImprovement] || `The platform and measurement capabilities have advanced materially since ${d.brandName} last ran with us.`;
+
+  const templates = {
+    'profitable-growth': `A lot has changed ${lastPeriod}${priorCpid}. ${improvements} For a brand with a profitable growth objective, the current environment — improved targeting precision, in-flight optimization, and rolling CPID measurement — makes the economics more defensible than they've ever been. The category is moving; the question is whether ${d.brandName} wants to be in the data set or watching it.`,
+    'gap-close': `A lot has changed ${lastPeriod}${priorCpid}. ${improvements} For a brand with a volume gap to close, what's different now is the ability to see the CPID story in real time and course-correct if needed — rather than waiting for a post-campaign read. This means the risk profile of a gap-close pilot is fundamentally lower than it was before.`,
+    'new-hh': `A lot has changed ${lastPeriod}${priorCpid}. ${improvements} For a brand focused on household penetration, the expanded targeting capabilities mean ${d.brandName} can find net-new households with more precision and at better economics than the last time we ran. The penetration opportunity in ${d.category || 'this category'} hasn't shrunk — and neither has the buyer base Ibotta can reach.`,
+    'market-share': `A lot has changed ${lastPeriod}${priorCpid}. ${improvements} The competitive dynamics in ${d.category || 'this category'} haven't gotten easier — and the ability to target ${seg} with surgical precision is, if anything, more important now than when ${d.brandName} last ran. The brands that have stayed active have built a behavioral targeting advantage that compounds over time.`,
+  };
+
+  return templates[d.objective] || `A lot has changed ${lastPeriod}${priorCpid}. ${improvements} The case for re-engaging now is straightforward: the platform is better, the measurement is clearer, and the ${getObjectiveLabel(d.objective).toLowerCase()} opportunity in ${d.category || 'this category'} is real.`;
+}
+
+function renderEmailLapsed(d, body) {
+  const subject = buildEmailSubjectLapsed(d);
+  const emailBody = buildEmailBodyLapsed(d);
+  const fullText = `Subject: ${subject}\n\n${emailBody}`;
+  const card = html(`
+    <div class="artifact-card">
+      <div class="artifact-header">
+        <span class="artifact-type">✉️ Re-engagement Email — Relationship Restart</span>
+        <button class="copy-btn" onclick="copyText(this, 'lapsed-email-full')">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+          Copy
+        </button>
+      </div>
+      <div class="artifact-body">
+        <div id="lapsed-email-full" style="display:none">${fullText}</div>
+        <div class="email-subject">
+          <div class="email-subject-label">Subject Line</div>
+          <div class="email-subject-text">${subject}</div>
+        </div>
+        <div class="email-body">${emailBody}</div>
+      </div>
+    </div>
+  `);
+  body.appendChild(card);
+  addDisclaimer(body);
+}
+
+function buildEmailSubjectLapsed(d) {
+  const subjects = {
+    'livelift': `${d.brandName}: what's changed since ${d.lapsedLastPeriod || 'your last campaign'} — in-flight optimization is live`,
+    'cpid': `${d.brandName}: ${d.category || 'category'} CPID benchmarks have moved — worth a look`,
+    'segments': `${d.brandName}: new targeting capabilities since ${d.lapsedLastPeriod || 'your last run'} — relevant to ${getObjectiveLabel(d.objective).toLowerCase()}`,
+    'retailers': `${d.brandName}: expanded retailer reach since ${d.lapsedLastPeriod || 'your last campaign'} — what it means for you`,
+    'halo': `${d.brandName}: the full incrementality picture looks different now — halo + follow-on in one view`,
+  }[d.lapsedImprovement] || `${d.brandName}: a few things have changed since ${d.lapsedLastPeriod || 'your last campaign'} — worth reconnecting`;
+  return subjects;
+}
+
+function buildEmailBodyLapsed(d) {
+  const contact = d.contactName || 'there';
+  const nugget = buildNuggetLapsed(d);
+
+  const reasonBridge = {
+    'budget': `I know the last time we spoke, budget was a constraint. I wanted to reconnect now because the conversation has changed — specifically around how we think about CPID as a self-funding performance metric rather than a trade spend line item.`,
+    'measurement': `I know incrementality measurement was a question the last time we worked together. I wanted to share what's changed on that front specifically — because it's meaningful.`,
+    'competitive': `I know you've been prioritizing other channels. I'm not here to tell you to de-prioritize them — I'm here to share what's happened in the ${d.category || 'category'} data since ${d.lapsedLastPeriod || 'your last campaign'} that I think is worth 20 minutes.`,
+    'team': `It's been a while, and I know there have been some team changes. I wanted to reconnect and make sure you had the full picture of what's happened on the platform since ${d.brandName} last ran.`,
+    'results': `I know the last campaign's results left some questions. I want to address those directly — and share what's different now.`,
+  }[d.lapsedReason] || `It's been a while since ${d.brandName} ran with us, and I wanted to reconnect with something specific — not a generic check-in, but a data point I think is genuinely relevant to where ${d.brandName} is right now.`;
+
+  const close = `I'd love to set up 20-30 minutes to walk through the updated category picture and talk through what a re-engagement looks like for ${d.brandName} specifically. No commitment, just a conversation.
+
+Best,
+[Your name]`;
+
+  return `Hi ${contact},
+
+${reasonBridge}
+
+${nugget}
+
+${close}`;
+}
+
+function renderSlideLapsed(d, body) {
+  const card = html(`
+    <div class="artifact-card">
+      <div class="artifact-header">
+        <span class="artifact-type">📊 Re-engagement Slide — Then vs. Now</span>
+      </div>
+      <div class="artifact-body">
+        <div class="slide-preview">
+          <div class="slide-headline">${buildSlideHeadlineLapsed(d)}</div>
+          <ul class="slide-bullets">
+            ${buildSlideBulletsLapsed(d).map(b => `<li class="slide-bullet"><div class="bullet-marker"></div><div>${b}</div></li>`).join('')}
+          </ul>
+          <div class="slide-sowhat"><strong>The Re-engagement Case →</strong> ${buildSlideSoWhatLapsed(d)}</div>
+        </div>
+        <div class="script-section">
+          <div class="script-label">Presenter Script</div>
+          <div class="script-text">${buildSlideScriptLapsed(d)}</div>
+        </div>
+      </div>
+    </div>
+  `);
+  body.appendChild(card);
+  addDisclaimer(body);
+}
+
+function buildSlideHeadlineLapsed(d) {
+  const headlines = {
+    'livelift': `<span>What's Changed:</span> In-Flight Optimization Changes the Risk Profile.`,
+    'cpid': `<span>The CPID Story in ${d.category || 'This Category'}</span> Has Improved Since You Last Ran.`,
+    'segments': `<span>New Targeting Precision.</span> Same Objective, Better Economics.`,
+    'retailers': `<span>More Retailers. More Reach.</span> More Incrementality.`,
+    'halo': `<span>The Full Incrementality Picture</span> Is Clearer Now Than It Was.`,
+  }[d.lapsedImprovement] || `<span>What's Different Now</span> for ${d.brandName} on IPN.`;
+  return headlines;
+}
+
+function buildSlideBulletsLapsed(d) {
+  const bullets = [];
+  if (d.lapsedLastPeriod) bullets.push(`${d.brandName} last ran in ${d.lapsedLastPeriod}${d.lapsedPriorCpid ? ' at ' + d.lapsedPriorCpid + ' CPID' : ''} — here's what's changed since then`);
+  const improvementBullets = {
+    'livelift': [`LiveLift now provides real-time CPID visibility during the campaign — underperforming offers can be optimized before the flight ends, not after`, `In-flight optimization fundamentally reduces performance risk: you're not committed to a result you can't see until the campaign is over`],
+    'cpid': [`Category CPID benchmarks for ${getSegmentPhrase(d.segment)} targeting have improved — the efficiency story is stronger than it was in ${d.lapsedLastPeriod || 'prior runs'}`, `Contribution-margin-positive economics are more achievable now across more ${d.category || 'category'} sub-segments`],
+    'segments': [`New behavioral segment targeting capabilities enable more precise ${getSegmentLabel(d.segment).toLowerCase()} identification — the incremental efficiency of each cohort is higher`, `Segment-level CPID reporting is now available in-flight via LiveLift, so you can see which buyers are performing best in real time`],
+    'retailers': [`The IPN retailer network has expanded — ${getSegmentPhrase(d.segment)} buyers are now reachable across more purchase occasions, improving both reach and measurement`, `Broader retailer coverage means a higher proportion of the target audience is identifiable and activatable`],
+    'halo': [`Halo and follow-on measurement now reported together: in-period incremental + halo across brand portfolio + follow-on sales 60 days post-campaign`, `The full incremental value of a campaign — not just in-period sales — is now visible in the standard reporting package`],
+  }[d.lapsedImprovement] || [`The platform has advanced materially since ${d.brandName} last ran — measurement, targeting, and in-flight visibility have all improved`];
+  bullets.push(...improvementBullets);
+  if (d.lapsedExtraContext) bullets.push(`Context: ${d.lapsedExtraContext}`);
+  return bullets;
+}
+
+function buildSlideSoWhatLapsed(d) {
+  const soWhats = {
+    'livelift': `The risk profile of a campaign has changed. In-flight optimization means you're not locked into a result — you can see it developing and course-correct. That's a different conversation than it was before.`,
+    'cpid': `The economics are better now. The same ${getObjectiveLabel(d.objective).toLowerCase()} objective ${d.brandName} had before is now achievable at more efficient CPID. The case for re-engagement is stronger than it was.`,
+    'segments': `More precise targeting means higher incremental efficiency. The ${getObjectiveLabel(d.objective).toLowerCase()} opportunity for ${d.brandName} is the same — the ability to capture it cleanly has improved.`,
+    'retailers': `More reach means more of the right buyers are reachable. For a ${getObjectiveLabel(d.objective).toLowerCase()} objective, expanded retailer coverage is directly additive to the result.`,
+    'halo': `Seeing the full incremental picture — in-period, halo, and follow-on — changes how you evaluate the return on a campaign. The value was always there; now it's measurable.`,
+  }[d.lapsedImprovement] || `The platform is better. The measurement is clearer. The ${getObjectiveLabel(d.objective).toLowerCase()} opportunity in ${d.category || 'this category'} is real. The case for re-engaging now is straightforward.`;
+  return soWhats;
+}
+
+function buildSlideScriptLapsed(d) {
+  const improvement = {
+    'livelift': `in-flight optimization via LiveLift`,
+    'cpid': `improved CPID benchmarks in the category`,
+    'segments': `new behavioral segment targeting precision`,
+    'retailers': `expanded retailer network coverage`,
+    'halo': `full halo and follow-on incrementality measurement`,
+  }[d.lapsedImprovement] || `meaningful platform improvements`;
+
+  return `"I want to be direct about why I'm reaching out now rather than six months ago: there's something specific that's changed. The headline for ${d.brandName} is ${improvement} — and I think it changes the conversation we should be having about the ${getObjectiveLabel(d.objective).toLowerCase()} objective. ${d.lapsedLastPeriod ? 'When you last ran in ' + d.lapsedLastPeriod + ', ' : 'When you last ran, '}the platform looked different. What I want to walk you through today is what's different now, why it matters for ${d.brandName} specifically, and what a re-engagement looks like. No commitment required — just want you to have the full picture."`;
+}
+
+// ══════════════════════════════════════════════════════════════
+// DEBRIEF mode existing buildNugget (unchanged below)
+// ══════════════════════════════════════════════════════════════
+
+function buildNugget(d) {
+  const seg = getSegmentPhrase(d.segment);
+  const objFrame = getObjectiveFrame(d.objective);
+  const pct = d.pctRedemptions ? `${d.pctRedemptions}%` : 'the majority';
+  const cpidLine = d.actualCpid ?
+    (d.targetCpid ?
+      `At a ${d.actualCpid} CPID — ${cpidVsTarget(d.actualCpid, d.targetCpid)} the ${d.targetCpid} efficiency target — ` :
+      `At a ${d.actualCpid} CPID, `) : '';
+  const liftLine = d.liftPct ? ` driving a ${d.liftPct} incremental sales lift` : '';
+  const haloLine = d.haloPct ? ` and a ${d.haloPct} halo sales contribution across related ${d.brandName} SKUs` : '';
+  const incrLine = d.incrSales ? ` (${d.incrSales} total incremental sales)` : '';
+
+  const templates = {
+    'profitable-growth': {
+      'new': `${pct} of ${d.brandName}'s IPN redemptions in ${d.campaignPeriod} came from ${seg} — shoppers with no prior purchase history who represent net-new revenue, not subsidization. ${cpidLine}this cohort confirmed ${d.brandName} can acquire genuinely new buyers at contribution-margin-positive economics${liftLine}${haloLine}${incrLine}. The case for always-on programming targeting this segment is clear: every incremental dollar is a new dollar, not a defended one.`,
+      'lapsed': `${pct} of ${d.brandName}'s IPN redemptions in ${d.campaignPeriod} came from ${seg} — buyers who had stopped purchasing in the prior 90 days and were successfully reactivated. ${cpidLine}each re-engaged buyer contributed profitable incremental revenue at a fraction of the cost of acquiring a new household${liftLine}${haloLine}${incrLine}. Lapsed reactivation is often the highest-ROI growth lever available to an established brand.`,
+      'loyal': `${pct} of ${d.brandName}'s IPN redemptions in ${d.campaignPeriod} came from ${seg} — high-frequency buyers who responded to the offer by purchasing more or more often. ${cpidLine}this cohort drove volume well above their baseline with efficient economics${liftLine}${haloLine}${incrLine}. For a brand already strong in loyalty, this signals that increasing purchase frequency among core buyers is a sustainable, measurable growth path.`,
+      'competitive': `${pct} of ${d.brandName}'s IPN redemptions in ${d.campaignPeriod} came from ${seg} — active buyers of competitive brands who switched to ${d.brandName} during the campaign. ${cpidLine}Ibotta's targeting successfully converted competitive shoppers at contribution-margin-positive economics${liftLine}${haloLine}${incrLine}. This segment represents real share capture — buyers who would not have been in the ${d.brandName} franchise without a targeted incentive.`
+    },
+    'gap-close': {
+      'new': `${pct} of ${d.brandName}'s IPN redemptions in ${d.campaignPeriod} came from ${seg}${liftLine}${haloLine}${incrLine}. ${cpidLine}these net-new buyers are additive volume with no risk of subsidizing existing demand — exactly the kind of clean increment that closes a sales gap without inflating the denominator. For a brand behind on quarterly targets, this is the most defensible spend possible.`,
+      'lapsed': `${pct} of ${d.brandName}'s IPN redemptions in ${d.campaignPeriod} came from ${seg}${liftLine}${haloLine}${incrLine}. ${cpidLine}reactivated buyers are proven purchasers who had simply stopped — the cost of winning them back is dramatically lower than acquiring new households, and their incremental spend counts directly toward ${d.accountName}'s volume targets. This is gap-close spend that's both efficient and strategically sound.`,
+      'loyal': `${pct} of ${d.brandName}'s IPN redemptions in ${d.campaignPeriod} came from ${seg}${liftLine}${haloLine}${incrLine}. ${cpidLine}increasing purchase frequency among loyal buyers is the fastest path to closing a near-term volume gap because the propensity is already high — you're simply accelerating existing behavior. The offer structure can be tuned to optimize volume specifically without compromising CPID.`,
+      'competitive': `${pct} of ${d.brandName}'s IPN redemptions in ${d.campaignPeriod} came from ${seg}${liftLine}${haloLine}${incrLine}. ${cpidLine}competitive switchers are the most valuable cohort for closing a category share gap: every unit they buy is one fewer for a competitor, making the effective impact on ${d.brandName}'s relative position twice the raw volume number. This segment should be a priority targeting lever in any gap-close scenario.`
+    },
+    'new-hh': {
+      'new': `${pct} of ${d.brandName}'s IPN redemptions in ${d.campaignPeriod} came from ${seg} — shoppers who had never appeared in ${d.brandName}'s purchase history prior to this campaign${liftLine}${incrLine}. ${cpidLine}Ibotta's cross-retailer, item-level data identified and converted net-new households at efficient economics${haloLine}. This is the purest possible measure of HH penetration lift: buyers who genuinely didn't exist in the franchise before.`,
+      'lapsed': `${pct} of ${d.brandName}'s IPN redemptions in ${d.campaignPeriod} came from ${seg} — buyers who hadn't purchased in 90+ days and represent reactivated household penetration${liftLine}${incrLine}. ${cpidLine}these shoppers add back to the active HH base without requiring the same acquisition cost as a true new buyer${haloLine}. For HH penetration goals, lapsed reactivation is the most efficient lever: the awareness is already there, it just needs a well-timed incentive.`,
+      'competitive': `${pct} of ${d.brandName}'s IPN redemptions in ${d.campaignPeriod} came from ${seg} — active buyers of competitive brands who made a first-ever ${d.brandName} purchase${liftLine}${incrLine}. ${cpidLine}converting competitive shoppers directly builds HH penetration from the most valuable possible source: households that currently fund a competitor${haloLine}. Each converted shopper represents both a net-new buyer for ${d.brandName} and a reduction in competitor HH penetration.`,
+      'loyal': `While ${pct} of ${d.brandName}'s IPN redemptions in ${d.campaignPeriod} came from existing loyal buyers, the campaign's halo data is the most relevant signal for an HH penetration objective${haloLine}${incrLine}. ${cpidLine}heavy buyers who purchase more during a campaign often introduce the brand to household members or buy for gifting — a secondary penetration effect that standard metrics undercount. Pair this with a dedicated new-buyer offer structure to directly target the HH goal.`
+    },
+    'market-share': {
+      'competitive': `${pct} of ${d.brandName}'s IPN redemptions in ${d.campaignPeriod} came from ${seg} — consumers actively buying competing brands in ${d.category} who switched to ${d.brandName} during the campaign${liftLine}${incrLine}. ${cpidLine}this is real, measurable category share capture${haloLine}. For a brand in a defensive posture, Ibotta's behavioral targeting directly identifies and converts the buyers most likely to defect — turning a reactive strategy into a proactive share defense mechanism.`,
+      'lapsed': `${pct} of ${d.brandName}'s IPN redemptions in ${d.campaignPeriod} came from ${seg} — buyers who had drifted toward competitors in the 90+ days prior${liftLine}${incrLine}. ${cpidLine}the ability to surgically identify and re-engage lapsed buyers before they become permanently competitive-loyal is the highest-value application of behavioral targeting for market share defense${haloLine}. Every reactivated lapsed buyer is one fewer conversion win for a competitor.`,
+      'new': `${pct} of ${d.brandName}'s IPN redemptions in ${d.campaignPeriod} came from ${seg}${liftLine}${incrLine}. ${cpidLine}while net-new buyers don't directly recover share, they expand the addressable franchise and build the base from which future share metrics are calculated${haloLine}. For a market share defense strategy, pairing new-buyer acquisition with competitive-switcher targeting creates the most durable long-term position.`,
+      'loyal': `${pct} of ${d.brandName}'s IPN redemptions in ${d.campaignPeriod} came from ${seg}${liftLine}${incrLine}. ${cpidLine}protecting the loyal core is the foundation of any share defense: buyers who purchase more frequently are less susceptible to competitive offers and more likely to recommend the brand${haloLine}. The efficient economics of serving this segment confirm that ${d.brandName} can fortify its core while simultaneously targeting lapsed and competitive switchers.`
+    }
+  };
+
+  const t = templates[d.objective] || {};
+  return t[d.segment] || `${pct} of ${d.brandName}'s IPN redemptions during ${d.campaignPeriod} came from ${seg}${liftLine}${haloLine}${incrLine}. ${cpidLine}this cohort delivered meaningful incremental results aligned with ${d.accountName}'s ${getObjectiveLabel(d.objective).toLowerCase()} objective. The data supports expanding this targeting approach in rolling programming.`;
+}
+
+function buildEmail(d) {
+  const subjects = {
+    'profitable-growth': {
+      'new': `${d.brandName}: Net-new buyers at a ${d.actualCpid || 'below-target'} CPID — here's what we saw`,
+      'lapsed': `Reactivated lapsed buyers drove efficient ${d.actualCpid || 'below-target'} CPID for ${d.brandName}`,
+      'loyal': `${d.brandName}'s loyal buyers delivered ${d.liftPct || 'strong'} lift at efficient CPID`,
+      'competitive': `${d.brandName} converted competitive switchers at ${d.actualCpid || 'efficient'} CPID — what this means`
+    },
+    'gap-close': {
+      'new': `${d.brandName}: ${d.incrSales || 'Material'} incremental sales from net-new buyers — gap-close insight`,
+      'lapsed': `Lapsed reactivation drove ${d.incrSales || 'meaningful'} incremental volume for ${d.brandName}`,
+      'loyal': `Frequency lift among loyal ${d.brandName} buyers — volume story inside`,
+      'competitive': `Competitive switchers added ${d.incrSales || 'incremental'} to ${d.brandName}'s Q — here's the breakdown`
+    },
+    'new-hh': {
+      'new': `${d.brandName}: ${d.pctRedemptions ? d.pctRedemptions + '% of redemptions from' : 'Significant share of reach among'} first-time buyers`,
+      'lapsed': `Reactivating lapsed buyers for ${d.brandName} — HH penetration impact`,
+      'competitive': `Converting ${d.category} competitive buyers to ${d.brandName} — penetration data`,
+      'loyal': `${d.brandName} halo data reveals broader HH penetration story`
+    },
+    'market-share': {
+      'competitive': `${d.brandName} captured ${d.category} competitive buyers — share defense data`,
+      'lapsed': `${d.brandName} reactivated lapsed buyers before competitors could convert them`,
+      'new': `${d.brandName} franchise expansion — building share from the ground up`,
+      'loyal': `Protecting ${d.brandName}'s loyal core while going on offense — here's the data`
+    }
+  };
+
+  const subjectMap = subjects[d.objective] || {};
+  const subject = subjectMap[d.segment] || `${d.brandName} IPN Performance Insight — ${d.campaignPeriod}`;
+
+  const greeting = `Hi ${d.contactName},`;
+
+  const opens = {
+    'profitable-growth': `Hope you're having a good week. I wanted to share a quick insight from ${d.brandName}'s recent IPN campaign that I think directly connects to the profitable growth framing we've been discussing.`,
+    'gap-close': `Following up on our last conversation about ${d.brandName}'s volume targets — I wanted to share a data point that I think reframes the gap-close opportunity.`,
+    'new-hh': `I've been pulling apart the ${d.brandName} campaign data and wanted to share a finding that speaks directly to the household penetration goal.`,
+    'market-share': `Quick insight from the ${d.brandName} campaign data that I think is directly relevant to the competitive positioning conversation we've been having.`
+  };
+
+  const bodyMiddle = buildNugget(d);
+
+  const closes = {
+    'profitable-growth': `This confirms what we've been building toward: a performance marketing setup where the economics are clear, measurable, and contribution-margin positive. I'd love to walk through what a rolling program looks like for ${d.brandName} based on this.
+
+Would you have 30 minutes in the next week or two?`,
+    'gap-close': `This is exactly the kind of incremental, non-subsidizing volume that closes a gap without eroding margin. Happy to model out what this could look like at scale.
+
+Would it make sense to connect this week to discuss next steps?`,
+    'new-hh': `For a brand focused on expanding its buyer base, this is one of the cleanest signals we can provide — true new households, measured with the same methodology Circana and Nielsen use for lift studies.
+
+Happy to pull together a fuller household penetration story if that would be useful for your planning cycle.`,
+    'market-share': `In a category with the competitive dynamics you're navigating, the ability to identify and convert the right buyers — before competitors do — is a genuine strategic advantage. Happy to dig into what this means for the next planning period.
+
+Would love to connect when you have a few minutes.`
+  };
+
+  const emailBody = `${greeting}
+
+${opens[d.objective] || `I wanted to share a quick data point from the ${d.brandName} campaign.`}
+
+${bodyMiddle}
+
+${closes[d.objective] || `Happy to connect to discuss what this means for next steps.\n\nBest,\n[Your name]`}`;
+
+  return { subject, emailBody };
+}
+
+function buildSlide(d) {
+  const pct = d.pctRedemptions ? `${d.pctRedemptions}%` : 'The majority';
+  const seg = getSegmentLabel(d.segment);
+  const cpidText = d.actualCpid ? d.actualCpid : 'efficient';
+  const targetText = d.targetCpid ? ` vs. ${d.targetCpid} target` : '';
+
+  const headlines = {
+    'profitable-growth': {
+      'new': `<span>${pct} New Buyers.</span> Every Dollar Is Incremental.`,
+      'lapsed': `<span>Lapsed Buyers Reactivated.</span> Profitable Growth, Not Subsidization.`,
+      'loyal': `<span>Loyal Buyers, Higher Frequency.</span> The Efficient Volume Story.`,
+      'competitive': `<span>Competitive Switchers Captured.</span> Real Share at Real Margin.`
+    },
+    'gap-close': {
+      'new': `<span>Net-New Volume from First-Time Buyers.</span> Your Gap-Close Engine.`,
+      'lapsed': `<span>Reactivated Lapsed Buyers.</span> The Fastest Path to Volume.`,
+      'loyal': `<span>Loyalty + Frequency</span> = Accelerated Volume.`,
+      'competitive': `<span>Competitive Switchers</span> Drive Incremental Category Share.`
+    },
+    'new-hh': {
+      'new': `<span>${pct} First-Time Buyers.</span> Real HH Penetration Growth.`,
+      'lapsed': `<span>Reactivated HHs</span> Back in the ${d.brandName} Franchise.`,
+      'competitive': `<span>Competitive Households</span> Converted to ${d.brandName}.`,
+      'loyal': `<span>Loyal Buyers Driving Halo</span> Beyond the Core.`
+    },
+    'market-share': {
+      'competitive': `<span>Category Competitors Switched.</span> Share Defense in Action.`,
+      'lapsed': `<span>Lapsed Buyers Reactivated</span> Before Competitors Could Convert Them.`,
+      'new': `<span>Franchise Expansion</span> Fuels Long-Term Share Momentum.`,
+      'loyal': `<span>Loyal Core Protected,</span> Offense Enabled.`
+    }
+  };
+
+  const headlineMap = headlines[d.objective] || {};
+  const headline = headlineMap[d.segment] || `<span>${d.brandName} IPN Performance</span> — ${seg} Story`;
+
+  const bullets = [
+    d.pctRedemptions ? `${d.pctRedemptions}% of ${d.campaignPeriod} redemptions came from ${getSegmentPhrase(d.segment)} — not existing buyers simply redeeming a discount` : null,
+    (d.actualCpid || d.liftPct) ? `${d.actualCpid ? d.actualCpid + ' CPID' + targetText : ''}${d.liftPct ? (d.actualCpid ? '; ' : '') + d.liftPct + ' incremental sales lift' : ''} — results are measured using the same exposure-based methodology as Circana lift studies` : null,
+    (d.haloPct || d.incrSales) ? `${d.haloPct ? d.haloPct + ' halo contribution across related ' + d.brandName + ' SKUs' : ''}${d.incrSales ? (d.haloPct ? '; ' : '') + d.incrSales + ' total incremental dollars, including follow-on sales 60 days post-campaign' : ''}` : null,
+    d.extraContext ? `Context: ${d.extraContext}` : null
+  ].filter(Boolean);
+
+  // Fallback bullets
+  if (bullets.length === 0) {
+    bullets.push(
+      `${seg} buyers drove the strongest incremental performance in ${d.campaignPeriod}`,
+      `Results measured using Matched Audiences methodology — same gold standard as Circana and Nielsen`,
+      `Halo and follow-on sales included in total incremental calculation (in-period + 60 days post-campaign)`
+    );
+  }
+
+  const soWhats = {
+    'profitable-growth': `The economics are contribution-margin positive. ${d.brandName} can run this at scale without subsidizing existing demand. Rolling programming is the logical next step.`,
+    'gap-close': `This is additive, non-subsidizing volume. The gap-close opportunity is real and directly fundable from performance marketing budgets at proven CPIDs.`,
+    'new-hh': `These are genuinely new households in the ${d.brandName} franchise. The targeting precision to find and convert them exists today, at efficient economics.`,
+    'market-share': `The data confirms that Ibotta's behavioral targeting can identify competitive buyers before they become competitive-loyal — and convert them at contribution-margin-positive CPID.`
+  };
+
+  const scripts = {
+    'profitable-growth': {
+      'new': `"What I want to highlight here is that these aren't existing ${d.brandName} buyers redeeming a coupon on something they would have bought anyway. These are net-new households — ${d.pctRedemptions ? d.pctRedemptions + '% of total redemptions' : "the majority of this campaign's volume"} came from people who had never purchased ${d.brandName} before. At ${d.actualCpid || 'this CPID'}, the promotion paid for itself on the first purchase. That's what contribution-margin-positive looks like. The question now is: what happens if we leave this running?"`,
+      'lapsed': `"Lapsed buyers are one of the most interesting segments in performance marketing because the economics work so much better than new acquisition. We're not convincing someone to try something new — we're reminding someone they already liked it. Look at the CPID: ${d.actualCpid || 'the result'} ${d.targetCpid ? 'against a ' + d.targetCpid + ' target' : ''}. Every one of these reactivated buyers generated profitable revenue. The case for always-on lapsed reactivation essentially writes itself."`,
+      'loyal': `"This slide is about frequency, not acquisition. Your loyal buyers responded to the offer by purchasing more — not just once, but with a follow-on lift that persisted ${d.haloPct ? 'into adjacent SKUs and' : ''} into the weeks after the campaign ended. At ${d.actualCpid || 'this CPID'}, we're turning your most valuable asset — the buyers you already have — into an even more productive one. The halo effect is the part I'd really want to dig into with your team."`,
+      'competitive': `"I want to be direct about what this data shows: ${d.pctRedemptions ? d.pctRedemptions + '% of' : 'a significant share of'} these redemptions came from people who were actively buying your competitors. They switched. They purchased ${d.brandName}. And the CPID was ${d.actualCpid || 'efficient'}. That's not subsidization — that's share capture. And we can do it again, at scale, with surgical targeting."`
+    }
+  };
+
+  const scriptMap = scripts[d.objective] || {};
+  const script = scriptMap[d.segment] || `"This slide is the core of what we've been building toward with ${d.brandName}. Let me walk you through it: ${d.pctRedemptions ? d.pctRedemptions + "% of this campaign's redemptions came from " + getSegmentPhrase(d.segment) : 'The primary buyer cohort here was ' + getSegmentPhrase(d.segment)}. ${d.actualCpid ? 'At a ' + d.actualCpid + ' CPID' + (d.targetCpid ? ' against a ' + d.targetCpid + ' target' : '') + ', ' : ''}the economics are clear${d.liftPct ? ', and the ' + d.liftPct + ' incremental lift confirms the methodology is working' : ''}. What this means for ${d.accountName}'s ${getObjectiveLabel(d.objective).toLowerCase()} goal is — ${soWhats[d.objective] || 'the path forward is clear.'}"`;
+
+  return {
+    headline,
+    bullets,
+    soWhat: soWhats[d.objective] || `The data supports scaling this approach in rolling programming. The economics are proven. The targeting is precise.`,
+    script
+  };
+}
+
+// ── HELPER TEXT GENERATORS ─────────────────────────────────────
+
+function getTips(objective, segment) {
+  const tips = {
+    'profitable-growth': [
+      { icon: '📧', who: 'Cold outreach', tip: 'Lead with the CPID-vs-target gap as a teaser before sharing the full story. "We saw something interesting in your campaign data" opens better than "here are your results."' },
+      { icon: '📊', who: 'QBR / Review', tip: 'Pair this nugget with the follow-on sales trend (60-day post period) to show that the incremental effect persists — this is the always-on argument.' },
+      { icon: '💬', who: 'Objection handling', tip: 'If the client questions methodology, lead with: "This is the same Matched Audiences approach Circana uses for lift studies — we provide it on a rolling basis at no charge."' }
+    ],
+    'gap-close': [
+      { icon: '📧', who: 'Gap-close pitch', tip: 'Frame the volume number first, then the CPID: "We generated X of incremental sales at Y CPID — the gap is closable, and the math is clean."' },
+      { icon: '📊', who: 'Planning meeting', tip: 'Show this alongside a quarter-to-date gap tracker so the client can see exactly how Ibotta\'s contribution stacks against the shortfall.' },
+      { icon: '💬', who: 'Finance stakeholder', tip: '"Non-subsidizing volume" is the phrase that resonates with finance teams. Use it explicitly: every dollar in this segment was additive.' }
+    ],
+    'new-hh': [
+      { icon: '📧', who: 'HH penetration brief', tip: 'Connect directly to the client\'s stated HH goal: "You told us you needed X new households in Q. Here\'s what the targeting delivered."' },
+      { icon: '📊', who: 'Brand review', tip: 'Compare against their third-party HH panel data if available. Ibotta\'s measure aligns with Circana methodology and will hold up to scrutiny.' },
+      { icon: '💬', who: 'Marketing buyer', tip: 'New-buyer data is the most compelling story for brand marketers. This audience speaks "penetration" — use that language explicitly throughout.' }
+    ],
+    'market-share': [
+      { icon: '📧', who: 'Competitive threat moment', tip: 'Time this email to a moment when the client\'s category is under competitive pressure. The urgency is real: competitive switchers can be permanently captured by the competition if not re-engaged.' },
+      { icon: '📊', who: 'Category leadership review', tip: 'Pair with category market share data from Nielsen/Circana to show the external trend — then connect Ibotta\'s conversion data as the antidote.' },
+      { icon: '💬', who: 'Commercial/RGM team', tip: 'RGM buyers think in terms of share, not just ROI. Lead with the competitive switcher percentage as the headline and let the CPID be the proof point, not the hook.' }
+    ]
+  };
+  return tips[objective] || tips['profitable-growth'];
+}
+
+function getObjectionPrep(objective, segment, d) {
+  const objections = {
+    'profitable-growth': {
+      objection: 'These results look good, but how do we know these buyers wouldn\'t have purchased anyway?',
+      response: `This is the most important question to answer well. The Matched Audiences methodology controls for exactly this: we compare two statistically identical groups of consumers — same demographics, purchase history, shopping habits — and the only variable is exposure to the Ibotta offer. Both groups saw the same media, the same shelf prices, the same everything. The incremental sales delta is directly attributable to the offer. This is the same approach Circana and ABCS use for paid lift studies — we provide it on a rolling basis at no additional cost.`
+    },
+    'gap-close': {
+      objection: 'We have a volume gap to close but we can\'t afford to just discount our way there.',
+      response: `Understood — and this is exactly why the CPID framework matters. We're not offering blanket discounts; we're using behavioral targeting to put the right offer in front of the buyers who won't purchase without it. ${d.pctRedemptions ? d.pctRedemptions + '% of redemptions' : 'The majority of this campaign\'s volume'} came from ${getSegmentPhrase(d.segment)} — buyers who weren't going to generate that volume at the shelf price. That's genuinely incremental revenue, not a margin giveaway.`
+    },
+    'new-hh': {
+      objection: 'We track household penetration using our panel data — how does your measurement connect to that?',
+      response: `Great question — and the short answer is that they use the same underlying methodology. Our Matched Audiences approach is an exposure-based lift study, identical in design to what Circana and Nielsen use for their panel-based HH penetration measures. The difference is that we're measuring it at item level, across 80+ retailers, using first-party purchase data tied directly to a consumer ID — which makes it more granular and faster than a traditional panel read. We're happy to do a methodology comparison with your measurement team.`
+    },
+    'market-share': {
+      objection: 'We see competitive pressure in the data, but we\'re not sure promotions are the right response.',
+      response: `This is a fair tension to name. The distinction here is that we're not running a broad discount — we're using behavioral targeting to identify shoppers who are actively buying your competitors and putting a precision offer in front of them. The alternative is letting those buyers complete their conversion to a competitor brand. At ${d.actualCpid || 'the CPIDs we delivered'}, the cost of retaining or converting one of these buyers is well within contribution-margin-positive territory for most CPG margin profiles. It's not a promotion strategy — it's a targeted competitive defense.`
+    }
+  };
+  return objections[objective] || null;
+}
+
+function getPersonalizationChecklist(d) {
+  return [
+    `Replace [Your name] with your actual name and title`,
+    `Verify all numbers match the latest reporting deck before sending`,
+    `Add a specific reference to the last conversation you had ("following up on our call last week...")`,
+    `If you have the client's Q targets, reference the specific gap: "you mentioned needing $X in Q — here's what the data showed"`,
+    `Consider whether to attach the full recap deck or position this as a teaser to drive a meeting`,
+    `Check that CPID and lift figures align with what CA has reviewed and approved for external sharing`,
+    `If the contact is Finance or Measurement (not Marketing), adjust the framing to lead with CPID methodology before volume`
+  ];
+}
+
+function getSlideBuildNotes(d) {
+  return [
+    { icon: '📐', label: 'Recommended Visual', note: `A single bar or waterfall chart showing ${getSegmentLabel(d.segment)} buyers as a share of total redemptions, alongside a CPID comparison to target. Keep it to one chart — the narrative carries the weight.` },
+    { icon: '🎨', label: 'Color Coding', note: `Use Ibotta orange to highlight the ${getSegmentLabel(d.segment)} segment bar. Gray out the other segments to create contrast. The visual hierarchy should make the key number impossible to miss.` },
+    { icon: '📝', label: 'Headline Rule', note: `The headline should state the insight, not the metric. "62% of redemptions came from lapsed buyers" is better than "Lapsed Buyer Redemption Share." Lead with what it means.` },
+    { icon: '🛡️', label: 'Methodology Disclaimer', note: `Include a small footnote: "Results measured using Matched Audiences (Synthetic Control Methodology). In-period + halo + 60-day follow-on sales included. Projections shown as ranges per LiveLift reporting standards."` },
+    { icon: '✅', label: 'CA Review', note: `Flag this slide for Client Analytics review before including in a client-facing deck. Per LiveLift reporting standards, CA owns the preparation of incrementality reporting.` }
+  ];
+}
+
+// ── UTILITY ────────────────────────────────────────────────────
+
+function getSegmentLabel(seg) {
+  return { 'new': 'New Buyers', 'lapsed': 'Lapsed Buyers', 'loyal': 'Loyal Buyers', 'competitive': 'Competitive Switchers' }[seg] || seg;
+}
+
+function getSegmentPhrase(seg) {
+  return {
+    'new': 'first-time buyers with no prior brand purchase history',
+    'lapsed': 'lapsed buyers who had not purchased in 90+ days',
+    'loyal': 'high-frequency loyal buyers',
+    'competitive': 'active buyers of competing brands'
+  }[seg] || seg;
+}
+
+function getObjectiveLabel(obj) {
+  return { 'profitable-growth': 'Profitable Growth', 'gap-close': 'Gap Close', 'new-hh': 'New HH Penetration', 'market-share': 'Market Share Defense' }[obj] || obj;
+}
+
+function getObjectiveFrame(obj) {
+  return {
+    'profitable-growth': 'profitable growth objective',
+    'gap-close': 'gap-close objective',
+    'new-hh': 'household penetration goal',
+    'market-share': 'market share defense strategy'
+  }[obj] || 'strategic objective';
+}
+
+function cpidVsTarget(actual, target) {
+  // Simple string comparison for efficiency direction
+  const a = parseFloat(actual.replace(/[^0-9.]/g,''));
+  const t = parseFloat(target.replace(/[^0-9.]/g,''));
+  if (!isNaN(a) && !isNaN(t)) {
+    const pctDiff = Math.abs(((t - a) / t) * 100).toFixed(0);
+    return a < t ? `${pctDiff}% more efficient than` : `${pctDiff}% above`;
+  }
+  return 'relative to';
+}
+
+function html(str) {
+  const div = document.createElement('div');
+  div.innerHTML = str;
+  return div.firstElementChild;
+}
+
+function switchEmailMode(mode) {
+  const plainView  = document.getElementById('email-plain-view');
+  const visualView = document.getElementById('email-visual-view');
+  const btnPlain   = document.getElementById('btn-plain');
+  const btnVisual  = document.getElementById('btn-visual');
+  const copyBtn    = document.getElementById('email-copy-btn');
+  if (!plainView || !visualView) return;
+
+  if (mode === 'visual') {
+    plainView.style.display  = 'none';
+    visualView.style.display = 'block';
+    btnPlain.classList.remove('active');
+    btnVisual.classList.add('active');
+    if (copyBtn) copyBtn.style.display = 'none'; // HTML email doesn't copy cleanly as plain text
+  } else {
+    plainView.style.display  = 'block';
+    visualView.style.display = 'none';
+    btnPlain.classList.add('active');
+    btnVisual.classList.remove('active');
+    if (copyBtn) copyBtn.style.display = 'flex';
+  }
+}
+
+function copyText(btn, sourceId) {
+  const el = document.getElementById(sourceId);
+  const text = el ? el.textContent : '';
+  navigator.clipboard.writeText(text).then(() => {
+    btn.classList.add('copied');
+    btn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Copied!';
+    setTimeout(() => {
+      btn.classList.remove('copied');
+      btn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> Copy';
+    }, 2000);
+  });
+}
+
+function addDisclaimer(body) {
+  const d = html(`
+    <div class="disclaimer">
+      <strong>Before sharing externally:</strong> All artifacts must be reviewed by Client Analytics to verify numbers align with approved reporting. Per LiveLift standards, CA owns incrementality reporting preparation. Projections should always be shown as ranges, never as guarantees.
+    </div>
+  `);
+  body.appendChild(d);
+}
+
+function downloadAll() {
+  const d = getData();
+  const nugget = buildNugget(d);
+  const { subject, emailBody } = buildEmail(d);
+  const slide = buildSlide(d);
+
+  const content = `INSIGHTS 2.0 — ARTIFACT FACTORY OUTPUT
+Generated: ${new Date().toLocaleDateString()}
+Account: ${d.accountName} | Brand: ${d.brandName} | Period: ${d.campaignPeriod}
+Segment: ${getSegmentLabel(d.segment)} | Objective: ${getObjectiveLabel(d.objective)}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+INSIGHT NUGGET
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+${nugget}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+EMAIL STARTER
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Subject: ${subject}
+
+${emailBody}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+MONEY SLIDE — PRESENTER SCRIPT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Headline: ${slide.headline.replace(/<[^>]+>/g, '')}
+
+Bullets:
+${slide.bullets.map(b => '• ' + b).join('\n')}
+
+The So-What: ${slide.soWhat}
+
+Presenter Script:
+${slide.script}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DISCLAIMER: All artifacts require CA review before external sharing.
+`;
+
+  const blob = new Blob([content], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${d.brandName || 'Brand'}_Artifacts_${d.campaignPeriod || 'Campaign'}.txt`.replace(/\s/g, '_');
+  a.click();
+  URL.revokeObjectURL(url);
+}
+</script>
+</body>
+</html>
