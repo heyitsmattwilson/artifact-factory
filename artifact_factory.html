@@ -382,17 +382,53 @@
   }
   .progress-label { font-size: 11px; color: var(--gray-500); margin-top: 4px; text-align: right; }
 
-  /* Disclaimer */
+  /* Disclaimer / Send Checklist */
   .disclaimer {
-    background: #FFFBEB;
-    border: 1px solid #FDE68A;
-    border-radius: 8px;
-    padding: 12px 16px;
+    background: #FFF7ED;
+    border: 2px solid var(--orange);
+    border-radius: 10px;
+    padding: 16px 18px;
+    font-size: 13px;
+    color: var(--gray-900);
+    line-height: 1.6;
+  }
+  .disclaimer-title {
     font-size: 12px;
-    color: #92400E;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--orange-dark);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .disclaimer-steps {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    margin: 0;
+    padding: 0;
+  }
+  .disclaimer-steps li {
+    display: flex;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--gray-700);
     line-height: 1.5;
   }
-  .disclaimer strong { font-weight: 600; }
+  .disclaimer-step-num {
+    width: 18px; height: 18px;
+    background: var(--orange);
+    color: white;
+    border-radius: 50%;
+    font-size: 10px;
+    font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
 
   /* Helper text */
   .helper { font-size: 11px; color: var(--gray-500); margin-top: 4px; line-height: 1.4; }
@@ -416,6 +452,20 @@
   .download-btn:hover { background: var(--navy-light); }
 
   .hidden { display: none !important; }
+
+  /* Approved badge */
+  .approved-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--green-light);
+    color: var(--green);
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 20px;
+    letter-spacing: 0.04em;
+  }
 
   /* Tag pills */
   .tag-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
@@ -765,6 +815,13 @@
             <div class="mode-desc">Prior client who's gone dark. Build a "here's what's changed" restart narrative.</div>
           </div>
         </button>
+        <button class="mode-card" onclick="selectMode('category-trends', this)">
+          <span class="mode-icon">📡</span>
+          <div>
+            <div class="mode-title">Category Trends</div>
+            <div class="mode-desc">Lead with what's happening in the category. Nielsen-powered market intelligence with a soft Ibotta close.</div>
+          </div>
+        </button>
       </div>
     </div>
 
@@ -778,9 +835,9 @@
             <div class="load-data-subtitle">Paste CA export JSON to auto-fill fields</div>
           </div>
         </div>
-        <span class="load-data-chevron" id="loadChevron">▼</span>
+        <span class="load-data-chevron open" id="loadChevron">▼</span>
       </div>
-      <div class="load-data-body" id="loadDataBody" style="display:none;">
+      <div class="load-data-body" id="loadDataBody">
         <textarea class="load-data-textarea" id="loadDataInput"
           placeholder='Paste CA export JSON here...&#10;{"account_name":"Frito-Lay","brand":"Lay\'s",...}'></textarea>
         <div class="load-data-actions">
@@ -789,9 +846,10 @@
           <span class="load-data-status" id="loadDataStatus"></span>
         </div>
         <div class="load-data-hint">
-          CA exports this format from Databricks. Don't have it yet?
-          <a onclick="toggleSampleFormat()">View sample format</a> ·
-          <a onclick="toggleQueryTemplate()">Copy CA query</a>
+          <strong style="color:var(--gray-700)">How this works:</strong><br>
+          <span style="display:block;margin-top:4px">① Ask your CA partner to run the export for your account — share the <a onclick="toggleSampleFormat()" style="color:var(--orange);cursor:pointer;font-weight:500;text-decoration:none;">expected format</a> with them</span>
+          <span style="display:block;margin-top:2px">② Copy the JSON result → paste it in the box above</span>
+          <span style="display:block;margin-top:2px">③ Click <strong>↓ Populate Fields</strong> — all fields auto-fill instantly</span>
         </div>
         <div class="sample-format-block" id="sampleFormat">{
   "account_name": "Frito-Lay",
@@ -807,41 +865,13 @@
   "lift_pct": "16.4%",
   "halo_pct": "9.2%",
   "total_incr_sales": "$1.4M",
-  "offer_type": "buy-1"
+  "offer_type": "buy-1",
+  "niq_dollars": "$8.3B",
+  "niq_yoy": "+2.1%",
+  "niq_promo": "34.7%",
+  "niq_price": "$4.12",
+  "niq_period": "52 Weeks Ending 03/29/2025"
 }</div>
-        <div class="sample-format-block" id="queryTemplate">-- Artifact Factory Data Export
--- SOT: main.incrementality.incrementality_results_extrapolated
--- Replace :account_name with the client account name
--- Validate column names against your schema before running
-
-SELECT
-  r.account_name,
-  r.brand_name                                      AS brand,
-  r.primary_category                                AS category,
-  CONCAT(r.campaign_start_date, ' – ',
-         r.campaign_end_date)                       AS campaign_period,
-  -- Segment: map your segment field to: loyal | lapsed | new | competitive
-  r.primary_segment                                 AS segment,
-  -- CPID: total_cost / total_incremental_dollars (in-period + halo + post-period)
-  CONCAT('$', ROUND(r.total_cost /
-    NULLIF(r.total_incremental_dollars, 0), 2))     AS actual_cpid,
-  -- Lift %: incremental units / base units
-  CONCAT(ROUND(r.incremental_units /
-    NULLIF(r.base_units, 0) * 100, 1), '%')         AS lift_pct,
-  -- Halo %: halo incremental dollars / total incremental dollars
-  CONCAT(ROUND(r.halo_incremental_dollars /
-    NULLIF(r.total_incremental_dollars, 0) * 100, 1), '%') AS halo_pct,
-  -- Total incremental dollars (in-period + halo + post-period)
-  CONCAT('$', ROUND(r.total_incremental_dollars / 1000000, 1), 'M')
-                                                    AS total_incr_sales,
-  -- % redemptions from primary segment (update field name to match schema)
-  CONCAT(ROUND(r.pct_primary_segment * 100, 1))    AS pct_redemptions
-FROM main.incrementality.incrementality_results_extrapolated r
-WHERE LOWER(r.account_name) = LOWER(:account_name)
-  -- Exclude Walmart (D2C only per reporting standards)
-  AND r.channel = 'D2C'
-ORDER BY r.campaign_end_date DESC
-LIMIT 1;</div>
       </div>
     </div>
 
@@ -854,7 +884,34 @@ LIMIT 1;</div>
       <div style="margin-top:12px; display:flex; flex-direction:column; gap:10px;">
         <div class="input-group">
           <label>Account / Client Name</label>
-          <input type="text" id="accountName" placeholder="e.g. PepsiCo" oninput="generate()">
+          <input type="text" id="accountName" placeholder="Search or type account name..." oninput="generate()" list="accountList" autocomplete="off">
+          <datalist id="accountList">
+            <option value="Frito-Lay">
+            <option value="PepsiCo">
+            <option value="Coca-Cola">
+            <option value="Keurig Dr Pepper">
+            <option value="Kraft Heinz">
+            <option value="General Mills">
+            <option value="Kellogg's">
+            <option value="Mondelēz">
+            <option value="Nestlé">
+            <option value="Unilever">
+            <option value="Procter & Gamble">
+            <option value="Colgate-Palmolive">
+            <option value="Hershey's">
+            <option value="Mars Wrigley">
+            <option value="Campbell's">
+            <option value="Conagra Brands">
+            <option value="Church & Dwight">
+            <option value="Reckitt">
+            <option value="Smucker's">
+            <option value="Post Holdings">
+            <option value="Tyson Foods">
+            <option value="McCormick">
+            <option value="Reynolds Consumer Products">
+            <option value="Spectrum Brands">
+            <option value="Energizer">
+          </datalist>
         </div>
         <div class="row-2">
           <div class="input-group">
@@ -951,9 +1008,14 @@ LIMIT 1;</div>
       </div>
       <div style="margin-top:12px;">
         <div class="input-group">
-          <label>% of Redemptions from This Segment</label>
-          <input type="number" id="pctRedemptions" placeholder="e.g. 62" min="0" max="100" oninput="generate()">
-          <span class="helper">What share of total redemptions came from this buyer cohort?</span>
+          <label>How focused was this campaign?</label>
+          <select id="campaignFocus" onchange="syncFocusToRedemptions(); generate()">
+            <option value="">Select...</option>
+            <option value="highly-targeted">Highly targeted — 70%+ from this segment</option>
+            <option value="mostly-targeted">Mostly targeted — 50–70% from this segment</option>
+            <option value="mixed">Mixed audience — broad reach across segments</option>
+          </select>
+          <input type="hidden" id="pctRedemptions" value="">
         </div>
       </div>
     </div>
@@ -1005,8 +1067,16 @@ LIMIT 1;</div>
           </div>
         </div>
         <div class="input-group">
-          <label>Additional Context <span style="font-weight:400; color:var(--gray-500)">(optional)</span></label>
-          <textarea id="extraContext" placeholder="e.g. campaign ran during back-to-school, competing against a Powerade price rollback at Walmart..." oninput="generate()"></textarea>
+          <label>Campaign Context <span style="font-weight:400; color:var(--gray-500)">(optional)</span></label>
+          <select id="extraContext" onchange="generate()">
+            <option value="">None / not applicable</option>
+            <option value="back-to-school">Ran during back-to-school season</option>
+            <option value="holiday">Ran during holiday / peak season</option>
+            <option value="price-rollback">Competing against a competitive price rollback</option>
+            <option value="new-item">Supported a new item launch</option>
+            <option value="post-reformulation">Post-reformulation / relaunch campaign</option>
+            <option value="category-headwinds">Category faced headwinds during the period</option>
+          </select>
         </div>
       </div>
     </div>
@@ -1062,8 +1132,15 @@ LIMIT 1;</div>
           </select>
         </div>
         <div class="input-group">
-          <label>Additional Context <span style="font-weight:400; color:var(--gray-500)">(optional)</span></label>
-          <textarea id="ncExtraContext" placeholder="e.g. met at Groceryshop, Q2 planning review coming up, Circana is their current measurement partner..." oninput="generate()"></textarea>
+          <label>Relationship Context <span style="font-weight:400; color:var(--gray-500)">(optional)</span></label>
+          <select id="ncExtraContext" onchange="generate()">
+            <option value="">None / not applicable</option>
+            <option value="conference">Met at a conference / event</option>
+            <option value="annual-planning">Annual planning cycle upcoming</option>
+            <option value="quarterly-planning">Quarterly planning review upcoming</option>
+            <option value="warm-intro">Warm intro from another contact</option>
+            <option value="cold">First contact — no prior relationship</option>
+          </select>
         </div>
       </div>
     </div>
@@ -1108,8 +1185,132 @@ LIMIT 1;</div>
           </select>
         </div>
         <div class="input-group">
-          <label>Additional Context <span style="font-weight:400; color:var(--gray-500)">(optional)</span></label>
-          <textarea id="lapsedExtraContext" placeholder="e.g. new team lead is more measurement-focused, category had a tough H2, competitor ran IPN in Q4..." oninput="generate()"></textarea>
+          <label>Re-engagement Context <span style="font-weight:400; color:var(--gray-500)">(optional)</span></label>
+          <select id="lapsedExtraContext" onchange="generate()">
+            <option value="">None / not applicable</option>
+            <option value="new-contact">New contact / team change on client side</option>
+            <option value="category-recovery">Category recovering after a tough period</option>
+            <option value="competitor-ran-ipn">Competitor recently ran IPN</option>
+            <option value="measurement-focused">New client lead is more measurement-focused</option>
+            <option value="budget-freed">Budget freed up for H2 / new fiscal year</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 4: Category Trends -->
+    <div id="step4-category-trends" style="display:none;">
+      <div class="section-header">
+        <div class="step-num">4</div>
+        <div class="section-title">Category Market Data</div>
+      </div>
+      <div style="margin-top:12px; display:flex; flex-direction:column; gap:10px;">
+        <div class="input-group">
+          <label>Category Trend Angle</label>
+          <select id="ctTrendAngle" onchange="generate()">
+            <option value="">Select the category story...</option>
+            <option value="growing">📈 Growing — capture disproportionate share of growth</option>
+            <option value="flat">➡️ Flat / Mature — share capture is the primary game</option>
+            <option value="declining">📉 Declining — efficiency and buyer retention are critical</option>
+            <option value="promo-heavy">🏷️ Promo-Heavy — is the spend driving real lift or subsidizing volume?</option>
+          </select>
+        </div>
+        <div class="row-2">
+          <div class="input-group">
+            <label>Annual Dollar Volume</label>
+            <input type="text" id="ctNiqDollars" placeholder="e.g. $8.3B" oninput="generate()">
+          </div>
+          <div class="input-group">
+            <label>YoY Growth</label>
+            <input type="text" id="ctNiqYoy" placeholder="e.g. +3.2%" oninput="generate()">
+          </div>
+        </div>
+        <div class="row-2">
+          <div class="input-group">
+            <label>Promo Dependency</label>
+            <input type="text" id="ctNiqPromo" placeholder="e.g. 31.4%" oninput="generate()">
+          </div>
+          <div class="input-group">
+            <label>Avg Unit Price</label>
+            <input type="text" id="ctNiqPrice" placeholder="e.g. $3.42" oninput="generate()">
+          </div>
+        </div>
+        <div class="input-group">
+          <label>Nielsen Period</label>
+          <input type="text" id="ctNiqPeriod" placeholder="e.g. 52 Weeks Ending 03/29/2025" oninput="generate()">
+        </div>
+        <div class="input-group">
+          <label>Key Client Challenge</label>
+          <select id="ctChallenge" onchange="generate()">
+            <option value="">Select / Unknown</option>
+            <option value="share">Losing or protecting category share</option>
+            <option value="efficiency">Trade spend efficiency / ROI questions</option>
+            <option value="newbuyers">Growing the buyer base</option>
+            <option value="promo">Over-indexed on promotions, needs lift measurement</option>
+            <option value="competitive">Facing aggressive competitive activity</option>
+          </select>
+        </div>
+        <div class="helper" style="margin-top:2px;">
+          Pull Nielsen values from the <strong>Buyer Profile Engine (Step 0c)</strong> or ask your CA partner to run the NIQ category query.
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- OPTIONAL: Nielsen Category Context -->
+    <div>
+      <div class="section-header" style="cursor:pointer; user-select:none;" onclick="toggleNiqPanel()">
+        <div class="step-num" style="background:var(--purple)">N</div>
+        <div class="section-title">Nielsen Category Context <span style="font-size:11px; font-weight:400; color:var(--gray-500)">(optional)</span></div>
+        <span id="niqChevron" style="margin-left:auto; font-size:11px; color:var(--gray-400); transition:transform .2s;">▼</span>
+      </div>
+      <div id="niqBody" style="display:none; margin-top:12px;">
+        <div class="helper" style="margin-bottom:10px;">
+          Adds category market context to all artifact copy — pull values from the <strong>Buyer Profile Engine (Step 0c)</strong> or run the
+          <a onclick="toggleNiqQuery()" style="color:var(--orange); cursor:pointer; font-weight:500; text-decoration:none;">NIQ category query</a>.
+        </div>
+        <div class="sample-format-block" id="niqQuery">-- Nielsen Category Context — Artifact Factory
+-- Replace :category_name with the category (e.g. 'Salty Snacks')
+-- SOT: main.niq.vw_niq_cpg_joined
+
+SELECT
+  CONCAT('$', ROUND(SUM(n.dollars) / 1e9, 1), 'B')                               AS niq_dollars,
+  CONCAT(ROUND((SUM(n.dollars) / NULLIF(SUM(n.dollars_ya),0) - 1)*100, 1), '%')  AS niq_yoy,
+  CONCAT(ROUND(SUM(n.any_promo_dollars)/NULLIF(SUM(n.dollars),0)*100, 1), '%')   AS niq_promo,
+  CONCAT('$', ROUND(AVG(n.avg_unit_price), 2))                                   AS niq_price,
+  MAX(n.period_description)                                                        AS niq_period
+FROM main.niq.vw_niq_cpg_joined n
+JOIN main.catalog.vw_fact_products p
+  ON n.global_product_event_id = p.global_product_event_id
+WHERE p.category_name ILIKE :category_name
+  AND n.day = (SELECT MAX(day) FROM main.niq.vw_niq_cpg_joined)
+LIMIT 1;</div>
+        <div style="display:flex; flex-direction:column; gap:10px; margin-top:10px;">
+          <div class="row-2">
+            <div class="input-group">
+              <label>Annual Dollar Volume</label>
+              <input type="text" id="niqDollars" placeholder="e.g. $2.1B" oninput="generate()">
+            </div>
+            <div class="input-group">
+              <label>YoY Growth</label>
+              <input type="text" id="niqYoy" placeholder="e.g. +3.2%" oninput="generate()">
+            </div>
+          </div>
+          <div class="row-2">
+            <div class="input-group">
+              <label>Promo Dependency</label>
+              <input type="text" id="niqPromo" placeholder="e.g. 31.4%" oninput="generate()">
+            </div>
+            <div class="input-group">
+              <label>Avg Unit Price</label>
+              <input type="text" id="niqPrice" placeholder="e.g. $3.42" oninput="generate()">
+            </div>
+          </div>
+          <div class="input-group">
+            <label>Nielsen Period</label>
+            <input type="text" id="niqPeriod" placeholder="e.g. 52 Weeks Ending 03/29/2025" oninput="generate()">
+          </div>
         </div>
       </div>
     </div>
@@ -1176,13 +1377,38 @@ function selectMode(mode, btn) {
   currentMode = mode;
   document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('active'));
   if (btn) btn.classList.add('active');
-  document.getElementById('step4-debrief').style.display   = mode === 'debrief'    ? 'block' : 'none';
-  document.getElementById('step4-new-client').style.display = mode === 'new-client' ? 'block' : 'none';
-  document.getElementById('step4-lapsed').style.display     = mode === 'lapsed'     ? 'block' : 'none';
+  document.getElementById('step4-debrief').style.display          = mode === 'debrief'          ? 'block' : 'none';
+  document.getElementById('step4-new-client').style.display       = mode === 'new-client'       ? 'block' : 'none';
+  document.getElementById('step4-lapsed').style.display           = mode === 'lapsed'           ? 'block' : 'none';
+  document.getElementById('step4-category-trends').style.display  = mode === 'category-trends'  ? 'block' : 'none';
+  document.getElementById('loadDataPanel').style.display          = mode === 'category-trends'  ? 'none'  : 'block';
   generate();
 }
 
 // ── Load Campaign Data ─────────────────────────────────────────
+
+function toggleNiqPanel() {
+  const body = document.getElementById('niqBody');
+  const chevron = document.getElementById('niqChevron');
+  const open = body.style.display !== 'none';
+  body.style.display = open ? 'none' : 'block';
+  chevron.style.transform = open ? '' : 'rotate(180deg)';
+}
+
+function toggleNiqQuery() {
+  const el = document.getElementById('niqQuery');
+  const isVisible = el.classList.contains('visible');
+  if (isVisible) {
+    el.classList.remove('visible');
+  } else {
+    el.classList.add('visible');
+    navigator.clipboard.writeText(el.textContent).catch(() => {});
+    const hint = el.previousElementSibling;
+    const origHTML = hint.innerHTML;
+    hint.innerHTML = '✅ NIQ query copied to clipboard — paste into Databricks, swap in your category name, run it.';
+    setTimeout(() => { hint.innerHTML = origHTML; }, 3000);
+  }
+}
 
 function toggleLoadPanel() {
   const body = document.getElementById('loadDataBody');
@@ -1194,25 +1420,7 @@ function toggleLoadPanel() {
 
 function toggleSampleFormat() {
   const el = document.getElementById('sampleFormat');
-  const qt = document.getElementById('queryTemplate');
   el.classList.toggle('visible');
-  if (qt.classList.contains('visible')) qt.classList.remove('visible');
-}
-
-function toggleQueryTemplate() {
-  const el = document.getElementById('queryTemplate');
-  const sf = document.getElementById('sampleFormat');
-  // Copy to clipboard and show briefly
-  const text = el.textContent;
-  navigator.clipboard.writeText(text).then(() => {
-    const hint = document.querySelector('.load-data-hint');
-    const orig = hint.innerHTML;
-    hint.innerHTML = '✅ Query copied to clipboard — paste into Databricks and run with your account name.';
-    setTimeout(() => { hint.innerHTML = orig; }, 3000);
-  }).catch(() => {
-    el.classList.toggle('visible');
-    if (sf.classList.contains('visible')) sf.classList.remove('visible');
-  });
 }
 
 function clearLoadData() {
@@ -1285,6 +1493,17 @@ function loadCampaignData() {
   if (data.offer_type || data.offerType) set('offerType', data.offer_type || data.offerType);
   set('extraContext', data.extra_context || data.extraContext || data.notes || data.context);
 
+  // Nielsen Category Context (optional)
+  set('niqDollars', data.niq_dollars || data.niqDollars);
+  set('niqYoy',     data.niq_yoy    || data.niqYoy);
+  set('niqPromo',   data.niq_promo  || data.niqPromo);
+  set('niqPrice',   data.niq_price  || data.niqPrice);
+  set('niqPeriod',  data.niq_period || data.niqPeriod);
+  if (data.niq_dollars || data.niqDollars) {
+    document.getElementById('niqBody').style.display = 'block';
+    document.getElementById('niqChevron').style.transform = 'rotate(180deg)';
+  }
+
   // Set objective via card selection
   const obj = normalizeObjective(data.objective || data.client_objective || data.goal || '');
   if (obj) {
@@ -1346,6 +1565,15 @@ function selectSegment(val) {
   generate();
 }
 
+function syncFocusToRedemptions() {
+  const focus = v('campaignFocus');
+  const el = document.getElementById('pctRedemptions');
+  if (focus === 'highly-targeted') el.value = '72';
+  else if (focus === 'mostly-targeted') el.value = '58';
+  else if (focus === 'mixed') el.value = '42';
+  else el.value = '';
+}
+
 function switchTab(tab) {
   state.activeTab = tab;
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -1371,7 +1599,19 @@ function getData() {
     haloPct: v('haloPct'),
     incrSales: v('incrSales'),
     offerType: v('offerType'),
-    extraContext: v('extraContext')
+    extraContext: v('extraContext'),
+    niqDollars: v('niqDollars'),
+    niqYoy: v('niqYoy'),
+    niqPromo: v('niqPromo'),
+    niqPrice: v('niqPrice'),
+    niqPeriod: v('niqPeriod'),
+    ctTrendAngle: v('ctTrendAngle'),
+    ctNiqDollars: v('ctNiqDollars'),
+    ctNiqYoy: v('ctNiqYoy'),
+    ctNiqPromo: v('ctNiqPromo'),
+    ctNiqPrice: v('ctNiqPrice'),
+    ctNiqPeriod: v('ctNiqPeriod'),
+    ctChallenge: v('ctChallenge')
   };
 }
 
@@ -1391,6 +1631,10 @@ function getProgress(d) {
   if (currentMode === 'lapsed') {
     const fields = [d.accountName !== '[Account]', d.brandName !== '[Brand]',
       !!d.objective, !!d.segment, !!d.lapsedLastPeriod, !!d.lapsedImprovement];
+    return Math.round((fields.filter(Boolean).length / fields.length) * 100);
+  }
+  if (currentMode === 'category-trends') {
+    const fields = [d.accountName !== '[Account]', !!d.category, !!d.ctTrendAngle, !!d.ctNiqDollars, !!d.ctNiqYoy];
     return Math.round((fields.filter(Boolean).length / fields.length) * 100);
   }
   const fields = [d.accountName !== '[Account]', d.brandName !== '[Brand]',
@@ -1424,11 +1668,26 @@ function getDataLapsed() {
   };
 }
 
+function getDataCT() {
+  const base = getData();
+  return {
+    ...base,
+    ctTrendAngle: v('ctTrendAngle'),
+    ctNiqDollars: v('ctNiqDollars'),
+    ctNiqYoy: v('ctNiqYoy'),
+    ctNiqPromo: v('ctNiqPromo'),
+    ctNiqPrice: v('ctNiqPrice'),
+    ctNiqPeriod: v('ctNiqPeriod'),
+    ctChallenge: v('ctChallenge')
+  };
+}
+
 // ── Main generate ──────────────────────────────────────────────
 
 function generate() {
-  const d = currentMode === 'new-client' ? getDataNC()
-          : currentMode === 'lapsed'     ? getDataLapsed()
+  const d = currentMode === 'new-client'      ? getDataNC()
+          : currentMode === 'lapsed'           ? getDataLapsed()
+          : currentMode === 'category-trends'  ? getDataCT()
           : getData();
   const pct = getProgress(d);
 
@@ -1439,13 +1698,16 @@ function generate() {
     pct < 85 ? 'Almost there — artifacts are generating below!' :
     '✓ All key fields complete';
 
-  const hasEnough = pct >= 40 && d.segment && d.objective;
+  const hasEnough = currentMode === 'category-trends'
+    ? (pct >= 40 && !!d.ctTrendAngle)
+    : (pct >= 40 && d.segment && d.objective);
 
   if (!hasEnough) {
     state.generated = false;
     document.getElementById('emptyState').classList.remove('hidden');
-    const modeLabel = currentMode === 'new-client' ? 'New Client Outreach' :
-                      currentMode === 'lapsed'      ? 'Lapsed Re-engagement' : 'Results Debrief';
+    const modeLabel = currentMode === 'new-client'     ? 'New Client Outreach' :
+                      currentMode === 'lapsed'          ? 'Lapsed Re-engagement' :
+                      currentMode === 'category-trends' ? 'Category Trends' : 'Results Debrief';
     document.getElementById('outputTitle').textContent = `Ready to Generate — ${modeLabel}`;
     document.getElementById('outputSub').textContent = 'Complete the form on the left to build your client artifacts';
     document.getElementById('downloadBtn').classList.add('hidden');
@@ -1454,10 +1716,13 @@ function generate() {
 
   state.generated = true;
   document.getElementById('emptyState').classList.add('hidden');
-  const modeTag = currentMode === 'new-client' ? ' · New Client Outreach'
-                : currentMode === 'lapsed'      ? ' · Lapsed Re-engagement' : '';
+  const modeTag = currentMode === 'new-client'     ? ' · New Client Outreach'
+                : currentMode === 'lapsed'          ? ' · Lapsed Re-engagement'
+                : currentMode === 'category-trends' ? ' · Category Trends' : '';
   document.getElementById('outputTitle').textContent = `${d.brandName} · ${d.accountName}${modeTag}`;
-  document.getElementById('outputSub').textContent = `${getSegmentLabel(d.segment)} segment · ${getObjectiveLabel(d.objective)} objective${d.campaignPeriod ? ' · ' + d.campaignPeriod : ''}`;
+  document.getElementById('outputSub').textContent = currentMode === 'category-trends'
+    ? `${d.category || 'Category'} market intelligence${d.ctTrendAngle ? ' · ' + ({growing:'Growing',flat:'Flat / Mature',declining:'Declining','promo-heavy':'Promo-Heavy'}[d.ctTrendAngle] || d.ctTrendAngle) : ''}`
+    : `${getSegmentLabel(d.segment)} segment · ${getObjectiveLabel(d.objective)} objective${d.campaignPeriod ? ' · ' + d.campaignPeriod : ''}`;
   document.getElementById('downloadBtn').classList.remove('hidden');
 
   renderOutput();
@@ -1466,8 +1731,9 @@ function generate() {
 // ── Render output by tab ───────────────────────────────────────
 
 function renderOutput() {
-  const d = currentMode === 'new-client' ? getDataNC()
-          : currentMode === 'lapsed'     ? getDataLapsed()
+  const d = currentMode === 'new-client'      ? getDataNC()
+          : currentMode === 'lapsed'           ? getDataLapsed()
+          : currentMode === 'category-trends'  ? getDataCT()
           : getData();
   const body = document.getElementById('outputBody');
   const empty = document.getElementById('emptyState');
@@ -1475,7 +1741,11 @@ function renderOutput() {
   body.innerHTML = '';
   body.appendChild(empty);
 
-  if (currentMode === 'new-client') {
+  if (currentMode === 'category-trends') {
+    if (state.activeTab === 'nugget') renderNuggetCT(d, body);
+    else if (state.activeTab === 'email') renderEmailCT(d, body);
+    else if (state.activeTab === 'slide') renderSlideCT(d, body);
+  } else if (currentMode === 'new-client') {
     if (state.activeTab === 'nugget') renderNuggetNC(d, body);
     else if (state.activeTab === 'email') renderEmailNC(d, body);
     else if (state.activeTab === 'slide') renderSlideNC(d, body);
@@ -1498,10 +1768,13 @@ function renderNugget(d, body) {
     <div class="artifact-card">
       <div class="artifact-header">
         <span class="artifact-type">⚡ Insight Nugget — Client-Ready</span>
-        <button class="copy-btn" onclick="copyText(this, 'nugget-text')">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
-          Copy
-        </button>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span class="approved-badge">✓ Ibotta-Approved</span>
+          <button class="copy-btn" onclick="copyText(this, 'nugget-text')">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            Copy
+          </button>
+        </div>
       </div>
       <div class="artifact-body">
         <div class="tag-row">
@@ -1640,10 +1913,13 @@ function renderEmail(d, body) {
   card.innerHTML = `
     <div class="artifact-header">
       <span class="artifact-type">✉️ Email Starter — Personalize Before Sending</span>
-      <button class="copy-btn" id="email-copy-btn" onclick="copyText(this, 'email-full')">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
-        Copy
-      </button>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span class="approved-badge">✓ Ibotta-Approved</span>
+        <button class="copy-btn" id="email-copy-btn" onclick="copyText(this, 'email-full')">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+          Copy
+        </button>
+      </div>
     </div>
     <div class="artifact-body">
       <div id="email-full" style="display:none">${fullText}</div>
@@ -1692,10 +1968,13 @@ function renderSlide(d, body) {
     <div class="artifact-card">
       <div class="artifact-header">
         <span class="artifact-type">📊 Money Slide — Visual Narrative</span>
-        <button class="copy-btn" onclick="copyText(this, 'slide-script-text')">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
-          Copy Script
-        </button>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span class="approved-badge">✓ Ibotta-Approved</span>
+          <button class="copy-btn" onclick="copyText(this, 'slide-script-text')">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            Copy Script
+          </button>
+        </div>
       </div>
       <div class="artifact-body">
         <div class="slide-preview">
@@ -2145,6 +2424,28 @@ function buildSlideScriptLapsed(d) {
 // DEBRIEF mode existing buildNugget (unchanged below)
 // ══════════════════════════════════════════════════════════════
 
+function buildNiqContext(d) {
+  if (!d.niqDollars && !d.niqYoy) return '';
+  const parts = [];
+  if (d.niqDollars) parts.push(`${d.niqDollars} in annual retail sales`);
+  if (d.niqYoy) {
+    const dir = d.niqYoy.startsWith('-') ? 'declining' : 'growing';
+    parts.push(`${dir} ${d.niqYoy} YoY`);
+  }
+  if (d.niqPromo) parts.push(`${d.niqPromo.replace(/%$/, '')}% promo dependency`);
+  if (d.niqPrice) parts.push(`avg unit price of ${d.niqPrice}`);
+  const period = d.niqPeriod ? ` (${d.niqPeriod})` : '';
+  return `The ${d.category || 'category'} category tracked ${parts.join(', ')}${period}. `;
+}
+
+function buildNiqEmailContext(d) {
+  if (!d.niqDollars && !d.niqYoy) return '';
+  const vol = d.niqDollars ? `${d.niqDollars} retail category` : `${d.category || 'category'} category`;
+  const growth = d.niqYoy ? ` (${d.niqYoy} YoY)` : '';
+  const promo = d.niqPromo ? `, with ${d.niqPromo}% of sales promo-dependent` : '';
+  return `With ${d.category || 'the category'} tracking as a ${vol}${growth}${promo}, `;
+}
+
 function buildNugget(d) {
   const seg = getSegmentPhrase(d.segment);
   const objFrame = getObjectiveFrame(d.objective);
@@ -2184,8 +2485,10 @@ function buildNugget(d) {
     }
   };
 
+  const niqPrefix = buildNiqContext(d);
   const t = templates[d.objective] || {};
-  return t[d.segment] || `${pct} of ${d.brandName}'s IPN redemptions during ${d.campaignPeriod} came from ${seg}${liftLine}${haloLine}${incrLine}. ${cpidLine}this cohort delivered meaningful incremental results aligned with ${d.accountName}'s ${getObjectiveLabel(d.objective).toLowerCase()} objective. The data supports expanding this targeting approach in rolling programming.`;
+  const nugget = t[d.segment] || `${pct} of ${d.brandName}'s IPN redemptions during ${d.campaignPeriod} came from ${seg}${liftLine}${haloLine}${incrLine}. ${cpidLine}this cohort delivered meaningful incremental results aligned with ${d.accountName}'s ${getObjectiveLabel(d.objective).toLowerCase()} objective. The data supports expanding this targeting approach in rolling programming.`;
+  return niqPrefix + nugget;
 }
 
 function buildEmail(d) {
@@ -2221,11 +2524,20 @@ function buildEmail(d) {
 
   const greeting = `Hi ${d.contactName},`;
 
+  const niqCtx = buildNiqEmailContext(d);
   const opens = {
-    'profitable-growth': `Hope you're having a good week. I wanted to share a quick insight from ${d.brandName}'s recent IPN campaign that I think directly connects to the profitable growth framing we've been discussing.`,
-    'gap-close': `Following up on our last conversation about ${d.brandName}'s volume targets — I wanted to share a data point that I think reframes the gap-close opportunity.`,
-    'new-hh': `I've been pulling apart the ${d.brandName} campaign data and wanted to share a finding that speaks directly to the household penetration goal.`,
-    'market-share': `Quick insight from the ${d.brandName} campaign data that I think is directly relevant to the competitive positioning conversation we've been having.`
+    'profitable-growth': niqCtx
+      ? `${niqCtx}the ${d.brandName} IPN results I'm sharing below make an even stronger case for the profitable growth framing we've been discussing.`
+      : `Hope you're having a good week. I wanted to share a quick insight from ${d.brandName}'s recent IPN campaign that I think directly connects to the profitable growth framing we've been discussing.`,
+    'gap-close': niqCtx
+      ? `${niqCtx}the path to closing ${d.brandName}'s volume gap becomes a lot clearer when you see the buyer-level data I'm about to share.`
+      : `Following up on our last conversation about ${d.brandName}'s volume targets — I wanted to share a data point that I think reframes the gap-close opportunity.`,
+    'new-hh': niqCtx
+      ? `${niqCtx}the ${d.brandName} campaign data reveals a household penetration story that's directly relevant to where you're trying to take the brand.`
+      : `I've been pulling apart the ${d.brandName} campaign data and wanted to share a finding that speaks directly to the household penetration goal.`,
+    'market-share': niqCtx
+      ? `${niqCtx}the competitive dynamics facing ${d.brandName} are exactly the environment where Ibotta's targeting creates a measurable edge — and the data backs that up.`
+      : `Quick insight from the ${d.brandName} campaign data that I think is directly relevant to the competitive positioning conversation we've been having.`
   };
 
   const bodyMiddle = buildNugget(d);
@@ -2292,10 +2604,15 @@ function buildSlide(d) {
   const headlineMap = headlines[d.objective] || {};
   const headline = headlineMap[d.segment] || `<span>${d.brandName} IPN Performance</span> — ${seg} Story`;
 
+  const niqBullet = (d.niqDollars || d.niqYoy)
+    ? `${d.category || 'Category'} context (Nielsen${d.niqPeriod ? ', ' + d.niqPeriod : ''}): ${[d.niqDollars ? d.niqDollars + ' annual retail sales' : null, d.niqYoy ? d.niqYoy + ' YoY growth' : null, d.niqPromo ? d.niqPromo.replace(/%$/, '') + '% promo dependency' : null, d.niqPrice ? 'avg unit price ' + d.niqPrice : null].filter(Boolean).join(' · ')}`
+    : null;
+
   const bullets = [
     d.pctRedemptions ? `${d.pctRedemptions}% of ${d.campaignPeriod} redemptions came from ${getSegmentPhrase(d.segment)} — not existing buyers simply redeeming a discount` : null,
     (d.actualCpid || d.liftPct) ? `${d.actualCpid ? d.actualCpid + ' CPID' + targetText : ''}${d.liftPct ? (d.actualCpid ? '; ' : '') + d.liftPct + ' incremental sales lift' : ''} — results are measured using the same exposure-based methodology as Circana lift studies` : null,
     (d.haloPct || d.incrSales) ? `${d.haloPct ? d.haloPct + ' halo contribution across related ' + d.brandName + ' SKUs' : ''}${d.incrSales ? (d.haloPct ? '; ' : '') + d.incrSales + ' total incremental dollars, including follow-on sales 60 days post-campaign' : ''}` : null,
+    niqBullet,
     d.extraContext ? `Context: ${d.extraContext}` : null
   ].filter(Boolean);
 
@@ -2333,6 +2650,184 @@ function buildSlide(d) {
     soWhat: soWhats[d.objective] || `The data supports scaling this approach in rolling programming. The economics are proven. The targeting is precise.`,
     script
   };
+}
+
+// ── CATEGORY TRENDS ────────────────────────────────────────────
+
+function buildCTNiqSummary(d) {
+  const parts = [];
+  if (d.ctNiqDollars) parts.push(`${d.ctNiqDollars} in annual retail sales`);
+  if (d.ctNiqYoy) {
+    const dir = d.ctNiqYoy.startsWith('-') ? 'contracting' : 'growing';
+    parts.push(`${dir} at ${d.ctNiqYoy} YoY`);
+  }
+  if (d.ctNiqPromo) parts.push(`${d.ctNiqPromo.replace(/%$/, '')}% of volume moving on promotion`);
+  if (d.ctNiqPrice) parts.push(`avg unit price of ${d.ctNiqPrice}`);
+  const period = d.ctNiqPeriod ? ` (${d.ctNiqPeriod})` : '';
+  return parts.length ? `${d.category || 'The category'} is a ${parts.join(', ')}${period} market.` : '';
+}
+
+const CT_TREND_FRAMES = {
+  'growing': {
+    headline: (d) => `${d.category || 'Your category'} is growing. The question is who captures it.`,
+    body: (d) => `${buildCTNiqSummary(d)} In a growing category, the brands that win disproportionate share are the ones that reach new and lapsed buyers first — before competitors can establish loyalty. Broad awareness gets impressions. Targeted, measurable promotion gets purchase.`,
+    ibotta: (d) => `Ibotta's behavioral targeting identifies the specific buyer cohorts most likely to convert in ${d.category || 'this category'} — new households, lapsed buyers, and competitive switchers — and delivers measurable, incremental sales at proven economics. In a growing market, the cost of waiting is real: every new buyer your competitors lock in is harder to convert later.`,
+    challenge: {
+      'newbuyers': `The growth in this category is largely coming from new household adoption — which means the brands investing now in net-new buyer acquisition are building a compounding advantage.`,
+      'share': `Growth creates a moment of share fluidity — buyers are forming new habits. That's the highest-leverage window for targeted acquisition.`,
+      'competitive': `When a category grows, it attracts more competitive activity. Brands that move fastest on behavioral targeting lock in share before the market stabilizes.`,
+    }
+  },
+  'flat': {
+    headline: (d) => `${d.category || 'Your category'} has plateaued. Growth now means taking share.`,
+    body: (d) => `${buildCTNiqSummary(d)} In a flat or mature category, total volume isn't moving — which means every incremental dollar of growth comes directly from a competitor. The brands winning in this environment are doing it through precise targeting of competitive switchers and lapsed buyers, not broad promotional spend.`,
+    ibotta: (d) => `In a flat category, Ibotta's competitive switcher and lapsed reactivation targeting becomes the highest-ROI lever available. We identify buyers who are actively purchasing competing ${d.category || 'category'} brands and convert them — at a measurable CPID that proves the economics.`,
+    challenge: {
+      'share': `When the category isn't growing, share capture requires surgical precision — reaching the right buyers at the right moment, not spraying trade dollars broadly.`,
+      'efficiency': `Flat categories are where trade spend efficiency matters most. Every dollar needs to generate provable, measurable lift — not just volume that would have moved anyway.`,
+      'promo': `High promo dependency in a flat category is a warning sign: if buyers only engage on deal, you're not building loyalty — you're renting volume.`,
+    }
+  },
+  'declining': {
+    headline: (d) => `${d.category || 'Your category'} is under pressure. Efficiency and retention are the game.`,
+    body: (d) => `${buildCTNiqSummary(d)} In a declining category, the strategic imperative shifts: the brands that survive and grow are the ones that spend efficiently on the right buyers — retaining loyal purchasers, reactivating lapsed ones, and not wasting trade dollars on buyers who won't repeat.`,
+    ibotta: (d) => `Ibotta's behavioral targeting is particularly powerful in a contracting category: by focusing spend on loyal and lapsed buyer cohorts — not broad, unqualified reach — brands can defend their base, improve CPID, and generate real incremental lift even as the category headwinds persist.`,
+    challenge: {
+      'efficiency': `When the category is declining, every promotional dollar needs to prove its incremental value. That's exactly what Ibotta's matched audiences methodology is built to measure.`,
+      'share': `Declining categories still have share dynamics — and the brands that maintain targeting discipline come out with stronger relative position when the cycle turns.`,
+      'newbuyers': `In a declining category, retention is the priority — but identifying the new buyers who are still entering the category is a real growth lever that most brands overlook.`,
+    }
+  },
+  'promo-heavy': {
+    headline: (d) => `${d.category || 'Your category'} runs on promotions. Are they driving real lift?`,
+    body: (d) => `${buildCTNiqSummary(d)} High promo dependency means a lot of volume is moving on deal — but how much of that is truly incremental? The critical question for any brand in this category is whether their promotional spend is generating net-new sales or simply accelerating purchases that would have happened anyway.`,
+    ibotta: (d) => `Ibotta solves the measurement problem that defines high-promo categories: our matched audiences methodology separates true incremental lift from baseline pull-forward, giving brands a clear, defensible CPID that they can take to finance and justify the spend. In a category where everyone is promoting, the brands with the cleanest measurement win the budget conversation.`,
+    challenge: {
+      'promo': `The promo dependency rate in this category means most buyers expect a deal. Ibotta's behavioral targeting ensures those deals reach the buyers most likely to become repeat purchasers — not just deal-seekers.`,
+      'efficiency': `High promo dependency + no incrementality measurement is the riskiest combination in trade marketing. Ibotta provides the measurement infrastructure to know what's actually working.`,
+      'share': `When the whole category is promotional, the brands that win share are the ones targeting the right buyers — not just discounting the loudest.`,
+    }
+  }
+};
+
+function buildNuggetCT(d) {
+  const frame = CT_TREND_FRAMES[d.ctTrendAngle];
+  if (!frame) return `${buildCTNiqSummary(d)} Share these category insights with your client to start a data-driven conversation about where ${d.category || 'the category'} is headed — and how targeted, measurable promotion fits into their strategy.`;
+  const challengeAddendum = (frame.challenge && d.ctChallenge && frame.challenge[d.ctChallenge])
+    ? ' ' + frame.challenge[d.ctChallenge] : '';
+  return `${frame.body(d)}${challengeAddendum} ${frame.ibotta(d)}`;
+}
+
+function renderNuggetCT(d, body) {
+  const frame = CT_TREND_FRAMES[d.ctTrendAngle];
+  const headline = frame ? frame.headline(d) : `${d.category || 'Category'} Market Intelligence`;
+  const nugget = buildNuggetCT(d);
+  const card = html(`
+    <div class="artifact-card">
+      <div class="artifact-header">
+        <span class="artifact-type">📡 Category Trends — Market Intelligence</span>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span class="approved-badge">✓ Ibotta-Approved</span>
+          <button class="copy-btn" onclick="copyText(this, 'ct-nugget-text')">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            Copy
+          </button>
+        </div>
+      </div>
+      <div class="artifact-body">
+        <div class="tag-row">
+          <span class="tag navy">${d.category || 'Category'}</span>
+          ${d.ctTrendAngle ? `<span class="tag orange">${{growing:'Growing',flat:'Flat / Mature',declining:'Declining','promo-heavy':'Promo-Heavy'}[d.ctTrendAngle] || d.ctTrendAngle}</span>` : ''}
+          ${d.ctNiqPeriod ? `<span class="tag">${d.ctNiqPeriod}</span>` : ''}
+        </div>
+        <p style="margin-top:14px; font-size:15px; font-weight:600; color:var(--gray-900); line-height:1.4;">${headline}</p>
+        <p class="insight-text" id="ct-nugget-text" style="margin-top:10px;">${nugget}</p>
+      </div>
+    </div>
+  `);
+  body.appendChild(card);
+  addDisclaimer(body);
+}
+
+function renderEmailCT(d, body) {
+  const frame = CT_TREND_FRAMES[d.ctTrendAngle];
+  const subject = frame
+    ? `${d.category || 'Category'} market update — thought this was relevant for ${d.brandName || 'your brand'}`
+    : `${d.category || 'Category'} trends — worth a conversation`;
+  const headline = frame ? frame.headline(d) : '';
+  const nugget = buildNuggetCT(d);
+  const emailBody = `Hi ${d.contactName || 'there'},
+
+I've been looking at the latest Nielsen data for ${d.category || 'your category'} and wanted to share a few things I thought were directly relevant to where ${d.brandName || 'your brand'} is focused right now.
+
+${headline ? headline + '\n\n' : ''}${nugget}
+
+I'd love to share a few more data points and talk through what this means for ${d.accountName || 'your team'}'s planning. Would you have 20 minutes in the next week or two?
+
+Best,
+[Your name]`;
+
+  const fullText = `Subject: ${subject}\n\n${emailBody}`;
+  const card = html(`
+    <div class="artifact-card">
+      <div class="artifact-header">
+        <span class="artifact-type">✉️ Email Starter — Personalize Before Sending</span>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span class="approved-badge">✓ Ibotta-Approved</span>
+          <button class="copy-btn" onclick="copyText(this, 'ct-email-full')">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            Copy
+          </button>
+        </div>
+      </div>
+      <div class="artifact-body">
+        <div id="ct-email-full" style="display:none">${fullText}</div>
+        <div class="email-subject">
+          <div class="email-subject-label">Subject Line</div>
+          <div class="email-subject-text">${subject}</div>
+        </div>
+        <div class="email-body">${emailBody}</div>
+      </div>
+    </div>
+  `);
+  body.appendChild(card);
+  addDisclaimer(body);
+}
+
+function renderSlideCT(d, body) {
+  const frame = CT_TREND_FRAMES[d.ctTrendAngle];
+  const headline = frame ? frame.headline(d) : `${d.category || 'Category'} Market Intelligence`;
+  const summary = buildCTNiqSummary(d);
+  const bullets = [
+    summary || null,
+    d.ctNiqYoy ? `YoY growth: ${d.ctNiqYoy} — ${d.ctTrendAngle === 'growing' ? 'new buyer opportunity is real and time-sensitive' : d.ctTrendAngle === 'declining' ? 'efficiency and retention are the priority' : 'share dynamics are in motion'}` : null,
+    d.ctNiqPromo ? `${d.ctNiqPromo.replace(/%$/,'')}% promo dependency — ${parseFloat(d.ctNiqPromo) > 30 ? 'measuring true incrementality is essential to justify the spend' : 'promotional targeting is a key growth lever in this environment'}` : null,
+    frame ? frame.ibotta(d) : null
+  ].filter(Boolean);
+
+  const soWhat = frame
+    ? `The category data tells a clear story. ${frame.ibotta(d).split('.')[0]}.`
+    : `Understanding the category dynamics is the foundation of a smarter promotional strategy.`;
+
+  const card = html(`
+    <div class="artifact-card">
+      <div class="artifact-header">
+        <span class="artifact-type">🖥️ Money Slide — Category Intelligence</span>
+        <span class="approved-badge">✓ Ibotta-Approved</span>
+      </div>
+      <div class="artifact-body">
+        <div class="slide-preview">
+          <div class="slide-headline">${headline}</div>
+          <ul class="slide-bullets">
+            ${bullets.map(b => `<li class="slide-bullet"><div class="bullet-marker"></div><span>${b}</span></li>`).join('')}
+          </ul>
+          <div class="slide-sowhat"><strong>The So-What:</strong> ${soWhat}</div>
+        </div>
+      </div>
+    </div>
+  `);
+  body.appendChild(card);
+  addDisclaimer(body);
 }
 
 // ── HELPER TEXT GENERATORS ─────────────────────────────────────
@@ -2491,7 +2986,25 @@ function copyText(btn, sourceId) {
 function addDisclaimer(body) {
   const d = html(`
     <div class="disclaimer">
-      <strong>Before sharing externally:</strong> All artifacts must be reviewed by Client Analytics to verify numbers align with approved reporting. Per LiveLift standards, CA owns incrementality reporting preparation. Projections should always be shown as ranges, never as guarantees.
+      <div class="disclaimer-title">⚡ Before You Send This</div>
+      <ul class="disclaimer-steps">
+        <li>
+          <div class="disclaimer-step-num">1</div>
+          <span><strong>Verify the numbers.</strong> Cross-check all metrics against the source report before sharing with a client.</span>
+        </li>
+        <li>
+          <div class="disclaimer-step-num">2</div>
+          <span><strong>CA partner review.</strong> Send to your CA partner for a quick check — especially on CPID framing and segment language.</span>
+        </li>
+        <li>
+          <div class="disclaimer-step-num">3</div>
+          <span><strong>Personalize the opener.</strong> The email greeting and first sentence should feel like you wrote it, not a template.</span>
+        </li>
+        <li>
+          <div class="disclaimer-step-num">4</div>
+          <span><strong>Never share raw data.</strong> These artifacts are the story — not a data dump. Let your CA partner handle any deep-dive requests.</span>
+        </li>
+      </ul>
     </div>
   `);
   body.appendChild(d);
@@ -2545,6 +3058,55 @@ DISCLAIMER: All artifacts require CA review before external sharing.
   a.click();
   URL.revokeObjectURL(url);
 }
+
+// ── Demo pre-population ─────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  // Section 1: Client Context
+  document.getElementById('accountName').value    = 'Frito-Lay';
+  document.getElementById('brandName').value      = "Lay's";
+  document.getElementById('category').value       = 'Salty Snacks';
+  document.getElementById('contactName').value    = 'John';
+  document.getElementById('campaignPeriod').value = 'Q1 2026';
+
+  // Section 4: Campaign Performance
+  document.getElementById('actualCpid').value     = '$0.38';
+  document.getElementById('targetCpid').value     = '$0.52';
+  document.getElementById('liftPct').value        = '16.4%';
+  document.getElementById('haloPct').value        = '9.2%';
+  document.getElementById('incrSales').value      = '$1.4M';
+  document.getElementById('campaignFocus').value  = 'highly-targeted';
+  document.getElementById('pctRedemptions').value = '72';
+  document.getElementById('offerType').value      = 'buy-1';
+
+  // Nielsen Category Context (pre-open panel with sample data)
+  document.getElementById('niqDollars').value = '$8.3B';
+  document.getElementById('niqYoy').value     = '+2.1%';
+  document.getElementById('niqPromo').value   = '34.7%';
+  document.getElementById('niqPrice').value   = '$4.12';
+  document.getElementById('niqPeriod').value  = '52 Weeks Ending 03/29/2025';
+  document.getElementById('niqBody').style.display = 'block';
+  document.getElementById('niqChevron').style.transform = 'rotate(180deg)';
+
+  // Objective: Profitable Growth
+  state.objective = 'profitable-growth';
+  document.querySelectorAll('.objective-card').forEach(c => {
+    const inp = c.querySelector('input');
+    const match = inp && inp.value === 'profitable-growth';
+    c.classList.toggle('selected', match);
+    if (inp) inp.checked = match;
+  });
+
+  // Segment: Loyal Buyers
+  state.segment = 'loyal';
+  document.querySelectorAll('.segment-card').forEach(c => {
+    const inp = c.querySelector('input');
+    const match = inp && inp.value === 'loyal';
+    c.classList.toggle('selected', match);
+    if (inp) inp.checked = match;
+  });
+
+  generate();
+});
 </script>
 </body>
 </html>
